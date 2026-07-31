@@ -1,0 +1,1503 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A5FA8">
+<title>Strauss Travel AI</title>
+<style>
+/* ── RESET & BASE ─────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --c-bg:#F7F6F3;--c-bg2:#FFFFFF;--c-bg3:#F0EEE9;
+  --c-border:#E2DDD5;--c-border2:#CBC5BB;
+  --c-text:#1A1814;--c-text2:#5A554D;--c-text3:#8A8278;
+  --c-blue:#1A5FA8;--c-blue-bg:#EAF2FB;--c-blue-light:#D0E7F8;
+  --c-green:#1A6B3A;--c-green-bg:#E6F5EE;
+  --c-amber:#B07D2A;--c-amber-bg:#FBF3E2;
+  --c-red:#C94F2A;--c-navy:#2E4057;--c-sea:#1A6B8A;--c-sea-bg:#E4F3F8;
+  --c-tip:#EAF2FB;--c-warn:#FDF3E6;--c-ok:#E8F5EE;
+  --radius:8px;--radius-lg:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.08);--shadow-lg:0 4px 16px rgba(0,0,0,.12);
+  --font:'Inter',system-ui,-apple-system,sans-serif;
+}
+body{font-family:var(--font);background:var(--c-bg);color:var(--c-text);min-height:100vh;font-size:14px;line-height:1.5}
+
+/* ── LAYOUT ───────────────────────────────────────────────── */
+.app{display:grid;grid-template-columns:320px 1fr;grid-template-rows:auto 1fr;min-height:100vh;max-width:1400px;margin:0 auto}
+.topbar{grid-column:1/-1;background:var(--c-bg2);border-bottom:1px solid var(--c-border);padding:0 24px;height:52px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100}
+.sidebar{background:var(--c-bg2);border-right:1px solid var(--c-border);overflow-y:auto;padding:16px}
+.main{overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:20px}
+
+/* ── TOPBAR ───────────────────────────────────────────────── */
+.logo{font-size:16px;font-weight:600;color:var(--c-text)}
+.logo span{color:var(--c-blue)}
+.logo-sub{font-size:11px;color:var(--c-text3);margin-left:2px}
+.tb-spacer{flex:1}
+.tb-btn{padding:5px 12px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--c-border);background:var(--c-bg);color:var(--c-text2);transition:all .15s;display:flex;align-items:center;gap:5px}
+.tb-btn:hover{background:var(--c-bg3);color:var(--c-text)}
+.tb-btn.primary{background:var(--c-blue);color:#fff;border-color:var(--c-blue)}
+.tb-btn.primary:hover{background:#1550A0}
+.tb-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* ── SIDEBAR SECTIONS ─────────────────────────────────────── */
+.sec{margin-bottom:18px}
+.sec-title{font-size:10px;font-weight:600;color:var(--c-text3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--c-border)}
+.field{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.field label{font-size:11px;font-weight:500;color:var(--c-text2)}
+input[type=text],input[type=date],input[type=password],select,textarea{
+  width:100%;padding:7px 10px;border:1px solid var(--c-border);border-radius:var(--radius);
+  font-family:var(--font);font-size:12px;background:var(--c-bg);color:var(--c-text);
+  transition:border .15s,box-shadow .15s;outline:none
+}
+input:focus,select:focus,textarea:focus{border-color:var(--c-blue);box-shadow:0 0 0 2px var(--c-blue-light)}
+textarea{resize:vertical;min-height:56px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+/* ── TRANSPORT SELECTOR ───────────────────────────────────── */
+.trsel{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px}
+.trb{border:1px solid var(--c-border);border-radius:var(--radius);padding:6px 2px;cursor:pointer;text-align:center;font-size:10px;font-weight:500;color:var(--c-text2);background:var(--c-bg);transition:all .15s;line-height:1.3;display:flex;flex-direction:column;align-items:center;gap:2px}
+.trb span{font-size:16px}
+.trb:hover{background:var(--c-bg3)}
+.trb.act-air{border-color:var(--c-blue);background:var(--c-blue-bg);color:var(--c-blue)}
+.trb.act-rail{border-color:var(--c-green);background:var(--c-green-bg);color:var(--c-green)}
+.trb.act-sea{border-color:var(--c-sea);background:var(--c-sea-bg);color:var(--c-sea)}
+.trb.act-both{border-color:var(--c-amber);background:var(--c-amber-bg);color:var(--c-amber)}
+
+/* ── CHECKBOXES ───────────────────────────────────────────── */
+.ckg{display:flex;flex-direction:column;gap:2px}
+.ci{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--c-text);padding:3px 5px;border-radius:5px;cursor:pointer;transition:background .12s}
+.ci:hover{background:var(--c-bg3)}
+.ci input{width:13px;height:13px;accent-color:var(--c-blue);cursor:pointer}
+
+/* ── GEN BUTTON ───────────────────────────────────────────── */
+.gen-btn{width:100%;padding:10px;border:1px solid var(--c-blue);border-radius:var(--radius);background:var(--c-blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .15s;margin-top:4px}
+.gen-btn:hover{background:#1550A0}
+.gen-btn:disabled{opacity:.5;cursor:not-allowed}
+
+/* ── API KEY SECTION ──────────────────────────────────────── */
+.apibox{background:var(--c-tip);border:1px solid var(--c-blue-light);border-radius:var(--radius);padding:10px 12px;margin-bottom:12px}
+.apibox p{font-size:11px;color:var(--c-text2);margin-bottom:6px}
+.apibox a{color:var(--c-blue);text-decoration:none;font-size:11px}
+.apikeyrow{display:flex;gap:6px}
+.apikeyrow input{flex:1;font-size:11px;font-family:monospace}
+.apikeyrow button{padding:7px 10px;border:1px solid var(--c-border);border-radius:var(--radius);background:var(--c-bg2);cursor:pointer;font-size:11px;white-space:nowrap;color:var(--c-text2)}
+.apikeyrow button:hover{background:var(--c-bg3)}
+.key-ok{color:var(--c-green);font-size:11px;font-weight:500;margin-top:4px;display:none}
+
+/* ── MAIN AREA ────────────────────────────────────────────── */
+.welcome{text-align:center;padding:60px 20px;color:var(--c-text2)}
+.welcome h2{font-size:22px;color:var(--c-text);margin-bottom:8px}
+.welcome p{font-size:13px;max-width:480px;margin:0 auto 24px}
+.steps-row{display:flex;gap:20px;justify-content:center;flex-wrap:wrap}
+.step{display:flex;flex-direction:column;align-items:center;gap:5px;font-size:11px;color:var(--c-text3);max-width:90px;text-align:center}
+.step-n{width:28px;height:28px;border-radius:50%;background:var(--c-blue-bg);color:var(--c-blue);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+
+/* ── OUTPUT ───────────────────────────────────────────────── */
+.guide-panel{background:var(--c-bg2);border:1px solid var(--c-border);border-radius:var(--radius-lg);overflow:hidden}
+.guide-header{padding:14px 20px;background:var(--c-navy);color:#fff;display:flex;align-items:center;gap:10px}
+.guide-header h2{font-size:15px;font-weight:600;flex:1}
+.guide-header .meta-tags{display:flex;gap:6px;flex-wrap:wrap}
+.meta-tag{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:500;background:rgba(255,255,255,.15);color:#fff}
+.guide-body{padding:24px;line-height:1.7}
+
+/* ── MARKDOWN RENDERING ───────────────────────────────────── */
+.guide-body h2{font-size:16px;font-weight:700;color:var(--c-navy);margin:22px 0 10px;padding-bottom:6px;border-bottom:2px solid var(--c-blue-light)}
+.guide-body h3{font-size:14px;font-weight:600;color:var(--c-text);margin:14px 0 6px}
+.guide-body p{margin-bottom:10px;color:var(--c-text)}
+.guide-body ul,.guide-body ol{margin:6px 0 10px 20px;color:var(--c-text)}
+.guide-body li{margin-bottom:3px}
+.guide-body strong{font-weight:600}
+.guide-body em{font-style:italic;color:var(--c-text2)}
+.guide-body table{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px}
+.guide-body th{background:var(--c-navy);color:#fff;padding:7px 10px;text-align:left;font-weight:500}
+.guide-body td{padding:6px 10px;border-bottom:1px solid var(--c-border);vertical-align:top}
+.guide-body tr:nth-child(even) td{background:var(--c-bg)}
+.guide-body tr:hover td{background:var(--c-bg3)}
+.guide-body td a{color:var(--c-blue);text-decoration:none}
+.guide-body td a:hover{text-decoration:underline}
+.guide-body blockquote{background:var(--c-tip);border-left:3px solid var(--c-blue);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;margin:10px 0;font-size:12px;color:var(--c-text2)}
+.guide-body blockquote.warn{background:var(--c-warn);border-left-color:var(--c-amber)}
+.guide-body code{background:var(--c-bg3);padding:1px 5px;border-radius:4px;font-family:monospace;font-size:11px}
+.guide-body hr{border:none;border-top:1px solid var(--c-border);margin:16px 0}
+
+/* ── STREAMING INDICATOR ──────────────────────────────────── */
+.streaming-bar{padding:12px 20px;background:var(--c-blue-bg);border-bottom:1px solid var(--c-blue-light);display:flex;align-items:center;gap:10px;font-size:12px;color:var(--c-blue)}
+.dot-pulse{display:flex;gap:4px}
+.dot-pulse span{width:6px;height:6px;border-radius:50%;background:var(--c-blue);animation:dp 1.2s ease-in-out infinite}
+.dot-pulse span:nth-child(2){animation-delay:.2s}
+.dot-pulse span:nth-child(3){animation-delay:.4s}
+@keyframes dp{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
+
+/* ── ACTION BAR ───────────────────────────────────────────── */
+.action-bar{padding:12px 20px;border-top:1px solid var(--c-border);display:flex;gap:8px;flex-wrap:wrap;background:var(--c-bg)}
+.action-btn{padding:6px 14px;border-radius:var(--radius);font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--c-border);background:var(--c-bg2);color:var(--c-text2);display:flex;align-items:center;gap:5px;transition:all .15s}
+.action-btn:hover{background:var(--c-bg3);color:var(--c-text)}
+.action-btn.blue{border-color:var(--c-blue);color:var(--c-blue)}
+.action-btn.blue:hover{background:var(--c-blue-bg)}
+.action-btn.green{border-color:var(--c-green);color:var(--c-green)}
+.action-btn.green:hover{background:var(--c-green-bg)}
+
+/* ── HISTORY PANEL ────────────────────────────────────────── */
+.hist-panel{background:var(--c-bg2);border:1px solid var(--c-border);border-radius:var(--radius-lg);overflow:hidden}
+.hist-header{padding:12px 16px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;justify-content:space-between}
+.hist-header h3{font-size:13px;font-weight:600;color:var(--c-text)}
+.hist-list{display:flex;flex-direction:column}
+.hist-item{padding:10px 16px;border-bottom:1px solid var(--c-border);cursor:pointer;transition:background .12s;display:flex;align-items:flex-start;gap:10px}
+.hist-item:last-child{border-bottom:none}
+.hist-item:hover{background:var(--c-bg3)}
+.hist-icon{font-size:20px;flex-shrink:0;margin-top:1px}
+.hist-body{flex:1;min-width:0}
+.hist-dest{font-size:13px;font-weight:600;color:var(--c-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hist-meta{font-size:11px;color:var(--c-text3);margin-top:2px}
+.hist-del{padding:3px 7px;border:1px solid var(--c-border);border-radius:5px;background:none;cursor:pointer;font-size:11px;color:var(--c-text3);transition:all .12s;flex-shrink:0}
+.hist-del:hover{border-color:var(--c-red);color:var(--c-red)}
+.hist-empty{padding:24px;text-align:center;color:var(--c-text3);font-size:12px}
+
+/* ── MAP SECTION ──────────────────────────────────────────── */
+.map-section{background:var(--c-bg2);border:1px solid var(--c-border);border-radius:var(--radius-lg);overflow:hidden}
+.map-header{padding:12px 16px;border-bottom:1px solid var(--c-border);display:flex;align-items:center;gap:8px}
+.map-header h3{font-size:13px;font-weight:600;color:var(--c-text);flex:1}
+.map-grid{padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.map-card{border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;transition:box-shadow .15s}
+.map-card:hover{box-shadow:var(--shadow-lg)}
+.map-card-img{width:100%;height:120px;background:var(--c-bg3);overflow:hidden;position:relative}
+.map-card-img iframe{width:100%;height:100%;border:none;pointer-events:none}
+.map-card-img .map-fallback{display:flex;align-items:center;justify-content:center;height:100%;font-size:32px;color:var(--c-text3)}
+.map-card-body{padding:8px 10px}
+.map-card-name{font-size:12px;font-weight:600;color:var(--c-text)}
+.map-card-type{font-size:10px;color:var(--c-text3);margin-bottom:6px}
+.map-card-link{display:inline-flex;align-items:center;gap:3px;font-size:11px;color:var(--c-blue);text-decoration:none}
+.map-card-link:hover{text-decoration:underline}
+
+/* ── TOAST ────────────────────────────────────────────────── */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--c-text);color:#fff;padding:10px 16px;border-radius:var(--radius);font-size:12px;z-index:1000;opacity:0;transform:translateY(10px);transition:all .25s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+
+/* ── PRINT ────────────────────────────────────────────────── */
+@media print{
+  .sidebar,.topbar,.action-bar,.hist-panel,.map-section,.streaming-bar{display:none!important}
+  .app{display:block}
+  .main{padding:0}
+  .guide-panel{border:none;box-shadow:none}
+  .guide-header{background:#2E4057!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .guide-body{padding:16px}
+  .guide-body h2{page-break-after:avoid}
+  .guide-body table{page-break-inside:avoid}
+  @page{margin:1.5cm;size:A4}
+}
+
+/* ── DARK THEME ───────────────────────────────────────────── */
+.dark{
+  --c-bg:#1A1A1A;--c-bg2:#242424;--c-bg3:#2E2E2E;
+  --c-border:#3A3A3A;--c-border2:#4A4A4A;
+  --c-text:#E8E4DE;--c-text2:#A8A49C;--c-text3:#787470;
+  --c-blue:#4A9BF5;--c-blue-bg:#1A2A3A;--c-blue-light:#2A3A50;
+  --c-green:#3ABF6A;--c-green-bg:#1A2E24;
+  --c-amber:#D4A03A;--c-amber-bg:#2E2A1A;
+  --c-red:#F06A4A;--c-navy:#3A5A7A;--c-sea:#3A9ABF;--c-sea-bg:#1A2E34;
+  --c-tip:#1A2A3A;--c-warn:#2E2A1A;--c-ok:#1A2E24;
+}
+@media(prefers-color-scheme:dark){
+  :root:not(.light){
+    --c-bg:#1A1A1A;--c-bg2:#242424;--c-bg3:#2E2E2E;
+    --c-border:#3A3A3A;--c-border2:#4A4A4A;
+    --c-text:#E8E4DE;--c-text2:#A8A49C;--c-text3:#787470;
+    --c-blue:#4A9BF5;--c-blue-bg:#1A2A3A;--c-blue-light:#2A3A50;
+    --c-green:#3ABF6A;--c-green-bg:#1A2E24;
+    --c-amber:#D4A03A;--c-amber-bg:#2E2A1A;
+    --c-red:#F06A4A;--c-navy:#3A5A7A;--c-sea:#3A9ABF;--c-sea-bg:#1A2E34;
+    --c-tip:#1A2A3A;--c-warn:#2E2A1A;--c-ok:#1A2E24;
+  }
+}
+
+/* ── RESPONSIVE ───────────────────────────────────────────── */
+@media(max-width:768px){
+  .app{grid-template-columns:1fr}
+  .sidebar{border-right:none;border-bottom:1px solid var(--c-border)}
+  .trsel{grid-template-columns:1fr 1fr}
+}
+/* ── PDF OVERLAY ─────────────────────────────────────── */
+.pdf-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center}
+.pdf-modal{background:var(--c-bg2);border-radius:var(--radius-lg);padding:32px 40px;text-align:center;box-shadow:var(--shadow-lg);max-width:340px}
+.pdf-modal h3{font-size:16px;margin-bottom:8px;color:var(--c-text)}
+.pdf-modal p{font-size:12px;color:var(--c-text2);margin-bottom:4px}
+.pdf-progress{width:100%;height:6px;border-radius:3px;background:var(--c-bg3);margin-top:12px;overflow:hidden}
+.pdf-progress-bar{height:100%;background:var(--c-blue);border-radius:3px;transition:width .3s}
+/* ── PDF CAPTURE: force print-friendly colors + bigger fonts ── */
+.pdf-capture{background:#fff!important;color:#1A1A1A!important;font-size:16px!important;line-height:1.8!important}
+.pdf-capture *{color:#1A1A1A!important}
+.pdf-capture h2{color:#2E4057!important;border-bottom-color:#C8DAE8!important;font-size:20px!important;margin:28px 0 12px!important}
+.pdf-capture h3{color:#1A1A1A!important;font-size:17px!important;margin:18px 0 8px!important}
+.pdf-capture p{font-size:15px!important;margin-bottom:12px!important}
+.pdf-capture li{font-size:15px!important;margin-bottom:4px!important}
+.pdf-capture th{background:#E8F0F7!important;color:#1A1A1A!important;font-size:13px!important;padding:8px 12px!important}
+.pdf-capture td{color:#1A1A1A!important;border-bottom-color:#ECECEC!important;font-size:13px!important;padding:7px 12px!important}
+.pdf-capture tr:nth-child(even) td{background:#FAFAFA!important}
+.pdf-capture tr:hover td{background:#FAFAFA!important}
+.pdf-capture blockquote{background:#F0F6FB!important;border-left-color:#5A8FBF!important;color:#333!important;font-size:14px!important;padding:12px 16px!important}
+.pdf-capture blockquote.warn{background:#FFF8EE!important;border-left-color:#D4A03A!important;color:#333!important}
+.pdf-capture a{color:#2E6FAF!important;font-size:inherit!important}
+.pdf-capture em{color:#444!important}
+.pdf-capture code{background:#F0F0F0!important;color:#1A1A1A!important}
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <span style="font-size:20px">🗺️</span>
+    <div>
+      <div class="logo">Strauss<span>Travel</span> <small class="logo-sub">AI</small></div>
+    </div>
+    <div class="tb-spacer"></div>
+    <button class="tb-btn" onclick="toggleTheme()" id="btn-theme" title="Tema chiaro/scuro">🌙</button>
+    <button class="tb-btn" onclick="showHistory()" title="Cronologia guide">📚 Cronologia (<span id="hist-count">0</span>)</button>
+    <button class="tb-btn primary" onclick="downloadPDF()" id="btn-pdf" style="display:none" title="Scarica PDF con link cliccabili">📄 PDF</button>
+    <button class="tb-btn" onclick="window.print()" id="btn-print" style="display:none" title="Stampa/Salva PDF">🖨️ Stampa</button>
+    <button class="tb-btn" onclick="clearGuide()" id="btn-clear" style="display:none">✕ Nuova ricerca</button>
+  </header>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+
+    <!-- API KEY -->
+    <div class="apibox">
+      <p>🔑 Inserisci la tua <strong>Anthropic API Key</strong> per usare l'app:<br>
+        <a href="https://console.anthropic.com/settings/keys" target="_blank">→ Ottieni una chiave gratuita</a>
+      </p>
+      <div class="apikeyrow">
+        <input type="password" id="apikey" placeholder="sk-ant-..." autocomplete="off">
+        <button onclick="saveKey()">💾 Salva</button>
+      </div>
+      <div class="key-ok" id="key-ok">✅ Chiave salvata — pronto!</div>
+    </div>
+
+    <!-- DESTINAZIONE -->
+    <div class="sec">
+      <div class="sec-title">🌍 Destinazione</div>
+      <div class="field">
+        <label>Paese / Città</label>
+        <input type="text" id="country" placeholder="es. Vienna, Giappone, Marocco…" oninput="updatePreview()">
+      </div>
+    </div>
+
+    <!-- DATE & PERSONE -->
+    <div class="sec">
+      <div class="sec-title">📅 Date e composizione</div>
+      <div class="row2 field">
+        <div><label>Partenza</label><input type="date" id="d1" onchange="updatePreview()"></div>
+        <div><label>Ritorno</label><input type="date" id="d2" onchange="updatePreview()"></div>
+      </div>
+      <div class="row2 field">
+        <div>
+          <label>Persone</label>
+          <select id="ppl" onchange="updatePreview()">
+            <option value="1">1 persona</option>
+            <option value="2" selected>2 persone</option>
+            <option value="3">3 persone</option>
+            <option value="4+">4+ persone</option>
+          </select>
+        </div>
+        <div>
+          <label>Classe</label>
+          <select id="cls" onchange="updatePreview()">
+            <option value="economy">Economy / 2ª</option>
+            <option value="business" selected>Business / 1ª</option>
+            <option value="prima">Prima classe</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRASPORTO -->
+    <div class="sec">
+      <div class="sec-title">🚀 Mezzo di trasporto</div>
+      <div class="trsel field" style="margin-bottom:8px">
+        <button class="trb act-air" id="tb-air" onclick="setT('air')"><span>✈️</span>Aereo</button>
+        <button class="trb" id="tb-rail" onclick="setT('rail')"><span>🚂</span>Treno</button>
+        <button class="trb" id="tb-sea" onclick="setT('sea')"><span>⛴️</span>Nave</button>
+        <button class="trb" id="tb-both" onclick="setT('both')"><span>🔀</span>Combo</button>
+      </div>
+      <div class="field" id="f-airport">
+        <label>Aeroporto di partenza</label>
+        <input type="text" id="airport" value="Venezia VCE" oninput="updatePreview()">
+      </div>
+      <div class="field" id="f-station" style="display:none">
+        <label>Stazione ferroviaria di partenza</label>
+        <input type="text" id="station" placeholder="es. Udine, Venezia S.Lucia…" oninput="updatePreview()">
+      </div>
+      <div class="field" id="f-port" style="display:none">
+        <label>Porto di partenza</label>
+        <input type="text" id="port" placeholder="es. Venezia, Trieste, Ancona…" oninput="updatePreview()">
+      </div>
+    </div>
+
+    <!-- TIPO VACANZA -->
+    <div class="sec">
+      <div class="sec-title">🎯 Tipo di vacanza</div>
+      <div class="ckg field">
+        <label class="ci"><input type="checkbox" value="escursionismo" onchange="updatePreview()"> 🥾 Escursionismo / Trekking</label>
+        <label class="ci"><input type="checkbox" value="enogastronomia" checked onchange="updatePreview()"> 🍷 Enogastronomia</label>
+        <label class="ci"><input type="checkbox" value="relax" onchange="updatePreview()"> 🧘 Relax / Benessere</label>
+        <label class="ci"><input type="checkbox" value="cultura" checked onchange="updatePreview()"> 🏛️ Cultura / Musei</label>
+        <label class="ci"><input type="checkbox" value="mare" onchange="updatePreview()"> 🏖️ Mare / Spiaggia</label>
+        <label class="ci"><input type="checkbox" value="avventura" onchange="updatePreview()"> 🪂 Avventura estrema</label>
+        <label class="ci"><input type="checkbox" value="famiglia" onchange="updatePreview()"> 👨‍👩‍👧 Famiglia con bambini</label>
+        <label class="ci"><input type="checkbox" value="crociera" onchange="updatePreview()"> 🚢 Crociera / Scali</label>
+      </div>
+    </div>
+
+    <!-- LINGUA -->
+    <div class="sec">
+      <div class="sec-title">🌐 Lingua output</div>
+      <div class="field">
+        <select id="lang">
+          <option value="italiano" selected>🇮🇹 Italiano</option>
+          <option value="inglese">🇬🇧 English</option>
+          <option value="tedesco">🇩🇪 Deutsch</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- NOTE -->
+    <div class="sec">
+      <div class="sec-title">📝 Note aggiuntive</div>
+      <div class="field">
+        <textarea id="notes" placeholder="Preferenze, luoghi da non perdere, esigenze speciali…" oninput="noteCounter(this)"></textarea>
+        <div style="text-align:right;font-size:10px;color:var(--c-text3);margin-top:2px"><span id="note-len">0</span>/400 car.</div>
+      </div>
+    </div>
+
+    <button class="gen-btn" id="gbtn" onclick="generate()">
+      <span id="gbtn-ico">✨</span>
+      <span id="gbtn-txt">Genera guida</span>
+    </button>
+    <div style="font-size:10px;color:var(--c-text3);text-align:center;margin-top:6px" id="preview-line">Compila i campi per iniziare</div>
+
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" id="main-area">
+
+    <!-- WELCOME -->
+    <div id="welcome-panel" class="welcome">
+      <div style="font-size:48px;margin-bottom:12px">✈️🚂⛴️</div>
+      <h2>Pianifica il tuo viaggio perfetto</h2>
+      <p>Strauss Travel AI genera guide di viaggio complete con trasporti, alberghi, itinerari A/B/C, budget comparativo e consigli pratici — powered by Claude AI.</p>
+      <div class="steps-row">
+        <div class="step"><div class="step-n">1</div><span>Inserisci destinazione e date</span></div>
+        <div class="step"><div class="step-n">2</div><span>Scegli mezzo e tipo vacanza</span></div>
+        <div class="step"><div class="step-n">3</div><span>Clicca Genera guida</span></div>
+        <div class="step"><div class="step-n">4</div><span>Leggi, stampa o salva</span></div>
+      </div>
+      <div style="margin-top:24px;padding:12px 16px;background:var(--c-blue-bg);border-radius:var(--radius);font-size:12px;color:var(--c-text2);max-width:420px;margin-left:auto;margin-right:auto">
+        💡 <strong>Cronologia automatica:</strong> ogni guida viene salvata localmente nel browser. Puoi riaprirla in qualsiasi momento dalla cronologia.
+      </div>
+    </div>
+
+    <!-- OUTPUT PANEL (hidden initially) -->
+    <div id="guide-panel" class="guide-panel" style="display:none">
+      <div class="guide-header" id="guide-header">
+        <span style="font-size:22px" id="guide-icon">🗺️</span>
+        <div style="flex:1">
+          <h2 id="guide-title">Guida di viaggio</h2>
+          <div class="meta-tags" id="guide-meta"></div>
+        </div>
+      </div>
+      <div class="streaming-bar" id="stream-bar" style="display:none">
+        <div class="dot-pulse"><span></span><span></span><span></span></div>
+        <span>Claude sta generando la tua guida…</span>
+      </div>
+      <div class="guide-body" id="guide-body"></div>
+      <div class="action-bar" id="action-bar" style="display:none">
+        <button class="action-btn blue" onclick="downloadPDF()">📄 Scarica PDF</button>
+        <button class="action-btn" onclick="window.print()">🖨️ Stampa</button>
+        <button class="action-btn green" onclick="copyGuide()">📋 Copia testo</button>
+        <button class="action-btn" onclick="generateChecklist()" id="btn-checklist">🧳 Checklist bagaglio</button>
+        <button class="action-btn" onclick="showMapLinks()">🗺️ Mappa luoghi</button>
+        <button class="action-btn" onclick="clearGuide()">🔄 Nuova ricerca</button>
+      </div>
+    </div>
+
+    <!-- MAP SECTION (hidden initially) -->
+    <div id="map-section" class="map-section" style="display:none">
+      <div class="map-header">
+        <span style="font-size:18px">📍</span>
+        <h3>Luoghi da visitare — Link Google Maps</h3>
+        <button class="tb-btn" onclick="document.getElementById('map-section').style.display='none'" style="font-size:11px">✕ Chiudi</button>
+      </div>
+      <div class="map-grid" id="map-grid"></div>
+    </div>
+
+    <!-- CHECKLIST PANEL (hidden initially) -->
+    <div id="checklist-section" class="hist-panel" style="display:none">
+      <div class="hist-header">
+        <h3>🧳 Checklist bagaglio</h3>
+        <button class="tb-btn" onclick="downloadChecklistPDF()" id="btn-checklist-pdf" style="font-size:11px;display:none">📄 PDF</button>
+        <button class="tb-btn" onclick="document.getElementById('checklist-section').style.display='none'" style="font-size:11px">✕ Chiudi</button>
+      </div>
+      <div class="streaming-bar" id="checklist-stream" style="display:none">
+        <div class="dot-pulse"><span></span><span></span><span></span></div>
+        <span>Claude prepara la checklist…</span>
+      </div>
+      <div id="checklist-body" style="padding:16px" class="guide-body"></div>
+    </div>
+
+    <!-- HISTORY PANEL (hidden initially) -->
+    <div id="hist-section" class="hist-panel" style="display:none">
+      <div class="hist-header">
+        <h3>📚 Cronologia guide salvate</h3>
+        <button class="tb-btn" onclick="clearAllHistory()" id="btn-clear-hist" style="font-size:11px;color:var(--c-red);border-color:var(--c-red)">🗑️ Elimina tutto</button>
+        <button class="tb-btn" onclick="document.getElementById('hist-section').style.display='none'" style="font-size:11px">✕ Chiudi</button>
+      </div>
+      <div id="hist-list"></div>
+    </div>
+
+  </main>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════════════════ */
+let transport = 'air';
+let currentGuideRaw = '';
+let currentMeta = {};
+
+/* ════════════════════════════════════════════════════════
+   API KEY MANAGEMENT
+════════════════════════════════════════════════════════ */
+function saveKey() {
+  const k = document.getElementById('apikey').value.trim();
+  if (!k.startsWith('sk-ant-')) { toast('⚠️ Chiave non valida — deve iniziare con sk-ant-'); return; }
+  localStorage.setItem('tg_apikey', k);
+  document.getElementById('key-ok').style.display = 'block';
+  toast('✅ API Key salvata!');
+}
+function getKey() { return localStorage.getItem('tg_apikey') || document.getElementById('apikey').value.trim(); }
+
+/* ════════════════════════════════════════════════════════
+   TRANSPORT SELECTOR
+════════════════════════════════════════════════════════ */
+function setT(m) {
+  transport = m;
+  const cfg = {
+    air:  {cls:'act-air',  ap:true,  st:false, pt:false},
+    rail: {cls:'act-rail', ap:false, st:true,  pt:false},
+    sea:  {cls:'act-sea',  ap:false, st:false, pt:true},
+    both: {cls:'act-both', ap:true,  st:true,  pt:true}
+  };
+  ['air','rail','sea','both'].forEach(k => {
+    document.getElementById('tb-'+k).className = 'trb' + (k===m ? ' '+cfg[m].cls : '');
+  });
+  document.getElementById('f-airport').style.display = cfg[m].ap ? 'flex' : 'none';
+  document.getElementById('f-station').style.display = cfg[m].st ? 'flex' : 'none';
+  document.getElementById('f-port').style.display    = cfg[m].pt ? 'flex' : 'none';
+  updatePreview();
+}
+
+/* ════════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════════ */
+function getChecked() {
+  return [...document.querySelectorAll('.ckg input:checked')].map(e => e.value);
+}
+function fmtDate(d) {
+  if(!d) return '';
+  const [y,mo,dd] = d.split('-');
+  const m = ['gen','feb','mar','apr','mag','giu','lug','ago','set','ott','nov','dic'];
+  return `${parseInt(dd)} ${m[parseInt(mo)-1]} ${y}`;
+}
+function daysDiff() {
+  const a = document.getElementById('d1').value, b = document.getElementById('d2').value;
+  if(!a||!b) return null;
+  const d = Math.round((new Date(b)-new Date(a))/86400000);
+  return d > 0 ? d : null;
+}
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+function noteCounter(el) {
+  el.value = el.value.slice(0,400);
+  document.getElementById('note-len').textContent = el.value.length;
+}
+function tLabel() {
+  return {air:'Aereo ✈️', rail:'Treno 🚂', sea:'Nave ⛴️', both:'Multi-mezzo 🔀'}[transport];
+}
+function tIcon() {
+  return {air:'✈️', rail:'🚂', sea:'⛴️', both:'🔀'}[transport];
+}
+function headerColor() {
+  return {air:'#2E4057', rail:'#1A6B3A', sea:'#1A6B8A', both:'#6B4E1A'}[transport];
+}
+
+/* ════════════════════════════════════════════════════════
+   PREVIEW LINE
+════════════════════════════════════════════════════════ */
+function updatePreview() {
+  const c = document.getElementById('country').value.trim();
+  const d = daysDiff();
+  const types = getChecked();
+  const pl = document.getElementById('preview-line');
+  if(!c) { pl.textContent='Compila i campi per iniziare'; return; }
+  pl.textContent = `${c} · ${d?d+'gg':'date da impostare'} · ${tLabel()} · ${types.length||'?'} interessi`;
+}
+
+/* ════════════════════════════════════════════════════════
+   PROMPT BUILDER
+════════════════════════════════════════════════════════ */
+function buildPrompt() {
+  const country  = document.getElementById('country').value.trim();
+  const d1v      = document.getElementById('d1').value;
+  const d2v      = document.getElementById('d2').value;
+  const ppl      = document.getElementById('ppl').value;
+  const cls      = document.getElementById('cls').value;
+  const airport  = document.getElementById('airport').value.trim() || 'Nord-Est Italia';
+  const station  = document.getElementById('station').value.trim() || 'Nord-Est Italia';
+  const port     = document.getElementById('port').value.trim() || 'Venezia';
+  const types    = getChecked().join(', ') || 'viaggio generico';
+  const notes    = document.getElementById('notes').value.trim();
+  const lang     = document.getElementById('lang').value;
+  const nDays    = daysDiff() || '?';
+  const fromFmt  = fmtDate(d1v), toFmt = fmtDate(d2v);
+
+  let transportCtx = '', sec2 = '';
+  if(transport==='air') {
+    transportCtx = `Mezzo: AEREO. Partenza da ${airport}. Classe ${cls}.`;
+    sec2 = `SEZIONE 2 – VOLI E AEROPORTI: tabella compagnie (Compagnia | Scalo | Durata scalo | Durata totale | Prezzo A/R | Link ufficiale). Almeno 4 compagnie reali per la rotta da ${airport} a ${country}. Tabella comparatori: Kayak, Skyscanner, Kiwi.com, Google Flights con link reali. Suggerimenti: timing prenotazione, bagaglio, check-in online, fast track, lounge.`;
+  } else if(transport==='rail') {
+    transportCtx = `Mezzo: TRENO. Partenza dalla stazione di ${station}. Classe ${cls}.`;
+    sec2 = `SEZIONE 2 – TRENI E STAZIONI: tabella operatori (Operatore | Rotta/Scali | Durata | Prezzo A/R | Link prenotazione). Portali: Trainline, Omio, Rail Europe, Eurail, Trenitalia. Valuta pass Interrail/Eurail. Tabella stazioni principali a destinazione (Stazione | Zona | Servizi). Consigli: vagoni notte Nightjet, bagaglio, puntualità locale, rimborsi ritardi EU (Reg. 1371/2007).`;
+  } else if(transport==='sea') {
+    transportCtx = `Mezzo: NAVE/TRAGHETTO. Porto di partenza: ${port}. Classe ${cls}.`;
+    sec2 = `SEZIONE 2 – TRAGHETTI E CROCIERE: tabella compagnie marittime (Compagnia | Rotta | Durata traversata | Prezzo A/R cabina | Link). Almeno 3-4 compagnie reali (es. Grimaldi, GNV, Jadrolinija, MSC, Costa). Tabella portali prenotazione (Ferryscanner, Direct Ferries, Traghetti.net con link). Tipologie cabine (Poltrona, Cabina interna, Cabina esterna, Suite). Consigli: mal di mare, parcheggio al porto, animali a bordo, imbarco auto.`;
+  } else {
+    transportCtx = `Mezzo: COMBINATO (Aereo + Treno + Nave). Aeroporto: ${airport}. Stazione: ${station}. Porto: ${port}. Classe ${cls}.`;
+    sec2 = `SEZIONE 2 – TRASPORTI A CONFRONTO: tabella voli (da ${airport}), tabella treni (da ${station}), tabella traghetti (da ${port}). Tabella comparativa: Criterio | Aereo | Treno | Nave (prezzo, durata porta a porta, comfort, CO₂, flessibilità, paesaggio, costo bagaglio). Raccomandazione finale motivata in base al profilo del viaggiatore. Tutti i link reali.`;
+  }
+
+  const langInstr = lang === 'italiano' ? 'Rispondi INTERAMENTE in italiano.' :
+                    lang === 'inglese'  ? 'Reply ENTIRELY in English.' :
+                                          'Antworte AUSSCHLIESSLICH auf Deutsch.';
+  return `${langInstr}
+
+Crea una guida di viaggio COMPLETA E DETTAGLIATA per un viaggio in ${country}.
+
+DATI DEL VIAGGIO:
+- Destinazione: ${country}
+- Date: ${fromFmt} → ${toFmt} (${nDays} giorni)
+- ${transportCtx}
+- Persone: ${ppl}
+- Tipo vacanza: ${types}
+- Note: ${notes||'nessuna'}
+
+Struttura la risposta in 6 sezioni con intestazioni ## emoji. Usa tabelle markdown, link reali verificati (Booking.com, compagnie aeree/ferroviarie/marittime, siti ufficiali). Includi i tuoi suggerimenti personali in blocchi > 💡
+
+## 📋 1. Documenti necessari
+Tabella: Documento | Requisito | Dove richiederlo / Link
+Includi passaporto/CI, visto se necessario, assicurazione sanitaria (TEAM), patente se utile.
+> 💡 Suggerimento pratico specifico per ${country}.
+
+## ${tIcon()} 2. ${transport==='air'?'Voli e aeroporti':transport==='rail'?'Treni e stazioni':transport==='sea'?'Traghetti e porti':'Trasporti a confronto'}
+${sec2}
+> 💡 Strategia ottimale di prenotazione per questo tipo di viaggio.
+
+## 🏨 3. Alberghi consigliati
+Per ogni area/città: tabella Opzione A/B/C | Nome struttura | Stelle | €/notte | Link Booking.com
+Link Booking.com reali con destinazione pre-compilata.
+> 💡 Quartiere migliore e timing ideale per la prenotazione.
+
+## 🗓️ 4. Itinerario giorno per giorno
+Tre opzioni: A (budget/zaino), B (medio), C (premium/lusso).
+Per ciascuna: tabella Giorno | Data | Luogo | Attività principali | Pernottamento
+Attività adatte a: ${types}.
+IMPORTANTE: dopo ogni tabella giornaliera, aggiungi un paragrafo ### 💡 I miei consigli per questa opzione con:
+- Il tuo consiglio sulla tappa più bella o imperdibile
+- Un avviso su cosa evitare o un errore comune dei turisti
+- Un suggerimento insider (orario migliore, trucco pratico, locale segreto)
+> 💡 La tua raccomandazione finale sull'opzione migliore per questo profilo specifico.
+
+## 💰 5. Budget comparativo
+Tabella: Voce di spesa | A-Budget | B-Medio | C-Premium
+Prezzi per ${ppl} persone, in Euro, per ${nDays} giorni. Riga **TOTALE** in grassetto.
+> 💡 I 3 consigli risparmio più efficaci per questo viaggio.
+
+## 💡 6. Consigli pratici
+- Tabella clima/abbigliamento: Mese | Temp min-max °C | Precipitazioni | Abbigliamento (per le date di viaggio)
+- Tabella gastronomia locale: Piatto | Descrizione | Dove provarlo (NON inserire link immagine, le immagini vengono caricate automaticamente dall'app)
+- > ⚠️ Sicurezza: avvertenze specifiche per ${country}
+- Tabella app e siti VERIFICATI per ${country} — usa SOLO link reali e funzionanti:
+  App/Sito | Utilizzo | Link diretto
+  Includi OBBLIGATORIAMENTE:
+  1) Meteo: usa meteoblue.com con URL specifico per la città (es. https://www.meteoblue.com/it/tempo/previsione/settimana/vienna) oppure il servizio meteo ufficiale locale — NON usare weather.com generico
+  2) Mappe offline: [Maps.me](https://maps.me) o [OsmAnd](https://osmand.net)
+  3) Traduttore: [Google Translate](https://translate.google.com/?sl=auto&tl=it)
+  4) Cambio valuta se moneta diversa da Euro: [XE Currency](https://www.xe.com/currencyconverter/)
+  5) Trasporti locali: sito ufficiale del trasporto pubblico locale con link reale
+  6) Numero emergenze locale (scrivi il numero, non un link)
+  Aggiungi altre app specifiche per la destinazione con link reali.
+${transport==='rail'||transport==='both'?'- Consigli per viaggiatori in treno: app monitoraggio, bagaglio, vagoni notte, rimborsi ritardi EU':''}
+${transport==='sea'||transport==='both'?'- Consigli per viaggiatori in nave: imbarco, cabine, mal di mare, servizi a bordo':''}
+
+## 🚇 7. Metropolitana e trasporto urbano
+IMPORTANTE: se ${country} ha metropolitana, metro, U-Bahn, tram o trasporto rapido urbano, DEVI includere questa sezione. Vienna, Roma, Milano, Parigi, Londra, Madrid, Berlino, Praga, Budapest ecc. hanno tutte una rete metro.
+- Tabella linee principali: Linea | Colore | Percorso (capolinea) | Frequenza | Biglietto singolo | Abbonamento turistico
+- Fermate utili per turisti: Fermata | Linea | Cosa c'è vicino (attrazioni/hotel zone)
+- Link al sito ufficiale della metro e all'app per orari/percorsi
+- Link alla mappa ufficiale della rete (PDF o immagine), se disponibile: ![Mappa metro](URL mappa ufficiale o Wikimedia Commons)
+- Consigli: orari di punta da evitare, sicurezza, biglietterie automatiche vs app, pass turistici (es. Roma Pass, Paris Visite, Vienna Card)
+Se la citta NON ha metropolitana (es. piccoli centri, isole), scrivi solo: "Questa destinazione non dispone di rete metropolitana" e passa oltre.
+
+Prezzi in Euro realistici per ${new Date().getFullYear()}. Tono professionale e coinvolgente.`;
+}
+
+/* ════════════════════════════════════════════════════════
+   GENERATE — streaming API call
+════════════════════════════════════════════════════════ */
+async function generate() {
+  const country = document.getElementById('country').value.trim();
+  const d1v = document.getElementById('d1').value, d2v = document.getElementById('d2').value;
+  if(!country) { toast('⚠️ Inserisci una destinazione!'); return; }
+  if(!d1v||!d2v) { toast('⚠️ Inserisci le date di partenza e ritorno!'); return; }
+  const key = getKey();
+  if(!key || !key.startsWith('sk-ant-')) { toast('🔑 Inserisci una API Key Anthropic valida!'); return; }
+
+  currentMeta = {
+    country, d1:d1v, d2:d2v,
+    ppl: document.getElementById('ppl').value,
+    cls: document.getElementById('cls').value,
+    transport,
+    types: getChecked(),
+    lang: document.getElementById('lang').value,
+    ts: Date.now()
+  };
+
+  // UI setup
+  document.getElementById('welcome-panel').style.display = 'none';
+  document.getElementById('hist-section').style.display = 'none';
+  document.getElementById('map-section').style.display = 'none';
+  document.getElementById('checklist-section').style.display = 'none';
+  const gp = document.getElementById('guide-panel');
+  gp.style.display = 'block';
+  const hdr = document.getElementById('guide-header');
+  hdr.style.background = headerColor();
+  document.getElementById('guide-icon').textContent = tIcon();
+  document.getElementById('guide-title').textContent = `Guida di viaggio — ${country}`;
+  const metaDiv = document.getElementById('guide-meta');
+  metaDiv.innerHTML = [
+    fmtDate(d1v)+' → '+fmtDate(d2v),
+    currentMeta.ppl+' pers.',
+    tLabel(),
+    currentMeta.cls
+  ].map(t=>`<span class="meta-tag">${t}</span>`).join('');
+  document.getElementById('stream-bar').style.display = 'flex';
+  document.getElementById('action-bar').style.display = 'none';
+  document.getElementById('btn-print').style.display = 'none';
+  document.getElementById('btn-pdf').style.display = 'none';
+  document.getElementById('btn-clear').style.display = 'inline-flex';
+  document.getElementById('guide-body').innerHTML = '';
+  const btn = document.getElementById('gbtn');
+  btn.disabled = true;
+  document.getElementById('gbtn-txt').textContent = 'Generazione in corso…';
+  document.getElementById('gbtn-ico').textContent = '⏳';
+
+  currentGuideRaw = '';
+  const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const canStream = !isIOS && typeof ReadableStream !== 'undefined';
+  if (isIOS) {
+    document.getElementById('stream-bar').querySelector('span').textContent =
+      'Claude elabora la guida… attendere 30–60 sec senza chiudere la pagina';
+  }
+  try {
+    const apiHeaders = {
+      'Content-Type': 'application/json',
+      'x-api-key': key,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    };
+    const apiBody = {
+      model: 'claude-sonnet-4-6',
+      max_tokens: 12000,
+      stream: canStream,
+      messages: [{ role:'user', content: buildPrompt() }]
+    };
+    if (isIOS) {
+      const result = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', 'https://api.anthropic.com/v1/messages');
+        Object.entries(apiHeaders).forEach(([k,v]) => xhr.setRequestHeader(k, v));
+        xhr.responseType = 'text'; xhr.timeout = 120000;
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            try { resolve(JSON.parse(xhr.responseText)); }
+            catch(e) { reject(new Error('Risposta non valida')); }
+          } else {
+            try { reject(new Error(JSON.parse(xhr.responseText).error?.message || 'HTTP '+xhr.status)); }
+            catch(_) { reject(new Error('HTTP '+xhr.status)); }
+          }
+        };
+        xhr.onerror   = () => reject(new Error('Connessione fallita. Verifica rete e API key.'));
+        xhr.ontimeout = () => reject(new Error('Timeout — riprova.'));
+        xhr.send(JSON.stringify(apiBody));
+      });
+      currentGuideRaw = (result.content && result.content[0] && result.content[0].text) || '';
+      document.getElementById('guide-body').innerHTML = markdownToHtml(currentGuideRaw);
+    } else {
+      const resp = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST', headers: apiHeaders, body: JSON.stringify(apiBody)
+      });
+      if (!resp.ok) {
+        let e = 'HTTP '+resp.status;
+        try { e = (await resp.json()).error?.message || e; } catch(_){}
+        throw new Error(e);
+      }
+      if (canStream && resp.body && resp.body.getReader) {
+        const reader = resp.body.getReader(), dec = new TextDecoder();
+        let buf = '';
+        while (true) {
+          const {done,value} = await reader.read();
+          if (done) break;
+          buf += dec.decode(value,{stream:true});
+          const lines = buf.split('\n'); buf = lines.pop();
+          for (const line of lines) {
+            if (!line.startsWith('data: ')) continue;
+            const data = line.slice(6);
+            if (data==='[DONE]') continue;
+            try {
+              const ev = JSON.parse(data);
+              if (ev.type==='content_block_delta' && ev.delta?.type==='text_delta') {
+                currentGuideRaw += ev.delta.text;
+                document.getElementById('guide-body').innerHTML = markdownToHtml(currentGuideRaw);
+                document.getElementById('guide-body').scrollTop = document.getElementById('guide-body').scrollHeight;
+              }
+            } catch(_){}
+          }
+        }
+      } else {
+        const data = await resp.json();
+        currentGuideRaw = (data.content && data.content[0] && data.content[0].text) || '';
+        document.getElementById('guide-body').innerHTML = markdownToHtml(currentGuideRaw);
+      }
+    }
+
+    // Done
+    document.getElementById('stream-bar').style.display = 'none';
+    document.getElementById('action-bar').style.display = 'flex';
+    document.getElementById('btn-print').style.display = 'inline-flex';
+    document.getElementById('btn-pdf').style.display = 'inline-flex';
+    saveToHistory(currentMeta, currentGuideRaw);
+    updateHistCount();
+    await injectFoodImages();
+    toast('✅ Guida generata — ' + document.querySelectorAll('#guide-body a[href]').length + ' link pronti!');
+  } catch(e) {
+    document.getElementById('stream-bar').style.display = 'none';
+    document.getElementById('guide-body').innerHTML += `<div style="color:#C94F2A;padding:12px;border:1px solid #C94F2A;border-radius:8px;margin-top:12px">❌ Errore: ${e.message}<br><small style="color:#888">Browser: ${navigator.userAgent.slice(-60)}</small></div>`;
+    toast('❌ Errore API: '+e.message);
+  } finally {
+    btn.disabled = false;
+    document.getElementById('gbtn-txt').textContent = 'Genera guida';
+    document.getElementById('gbtn-ico').textContent = '✨';
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   MARKDOWN PARSER (lightweight)
+════════════════════════════════════════════════════════ */
+function markdownToHtml(md) {
+  let h = md
+    // escape HTML
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    // headings
+    .replace(/^### (.+)$/gm,'<h3>$1</h3>')
+    .replace(/^## (.+)$/gm,'<h2>$1</h2>')
+    .replace(/^# (.+)$/gm,'<h2>$1</h2>')
+    // bold/italic
+    .replace(/\*\*\*(.+?)\*\*\*/g,'<strong><em>$1</em></strong>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+    // inline code
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    // hr
+    .replace(/^---$/gm,'<hr>')
+    // blockquote ⚠️
+    .replace(/^&gt; ⚠️(.+)$/gm,'<blockquote class="warn">⚠️$1</blockquote>')
+    // blockquote normal
+    .replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>')
+    // images
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\)]+)\)/g,'<img src="$2" alt="$1" style="max-width:200px;border-radius:6px;margin:4px 0;vertical-align:middle" loading="lazy" onerror="this.style.display=\'none\'">')
+    // links
+    .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
+    // bare urls
+    .replace(/(^|[\s,])(https?:\/\/[^\s,\)]+)/g,'$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+
+  // tables
+  h = h.replace(/(\|.+\|\n)+/g, match => {
+    const rows = match.trim().split('\n').filter(r => r.trim());
+    if(rows.length < 2) return match;
+    let out = '<table>';
+    rows.forEach((row, i) => {
+      if(row.match(/^\|[\s\-|]+\|$/)) return; // separator row
+      const cells = row.split('|').filter((_,j,a) => j>0 && j<a.length-1);
+      const tag = i===0 ? 'th' : 'td';
+      out += '<tr>'+cells.map(c=>`<${tag}>${c.trim()}</${tag}>`).join('')+'</tr>';
+    });
+    out += '</table>';
+    return out;
+  });
+
+  // lists
+  h = h.replace(/(^- .+\n?)+/gm, match => {
+    const items = match.trim().split('\n').map(l => l.replace(/^- /,''));
+    return '<ul>'+items.map(i=>`<li>${i}</li>`).join('')+'</ul>';
+  });
+  h = h.replace(/(^\d+\. .+\n?)+/gm, match => {
+    const items = match.trim().split('\n').map(l => l.replace(/^\d+\. /,''));
+    return '<ol>'+items.map(i=>`<li>${i}</li>`).join('')+'</ol>';
+  });
+
+  // paragraphs
+  h = h.split('\n\n').map(block => {
+    block = block.trim();
+    if(!block) return '';
+    if(block.match(/^<(h[1-6]|ul|ol|table|blockquote|hr)/)) return block;
+    return `<p>${block.replace(/\n/g,' ')}</p>`;
+  }).join('\n');
+
+  return h;
+}
+
+/* ════════════════════════════════════════════════════════
+   HISTORY
+════════════════════════════════════════════════════════ */
+const HIST_KEY = 'tg_history';
+
+function saveToHistory(meta, guideText) {
+  let hist = loadHistory();
+  const id = meta.ts;
+  hist = hist.filter(h => h.id !== id);
+  hist.unshift({ id, meta, guideText: guideText.slice(0,50000) }); // cap 50k chars
+  if(hist.length > 20) hist = hist.slice(0,20);
+  try { localStorage.setItem(HIST_KEY, JSON.stringify(hist)); } catch(e) { console.warn('History save failed', e); }
+}
+
+function loadHistory() {
+  try { return JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); } catch{ return []; }
+}
+
+function updateHistCount() {
+  document.getElementById('hist-count').textContent = loadHistory().length;
+}
+
+function showHistory() {
+  const hist = loadHistory();
+  const el = document.getElementById('hist-section');
+  const list = document.getElementById('hist-list');
+  document.getElementById('welcome-panel').style.display = 'none';
+  document.getElementById('guide-panel').style.display = 'none';
+  document.getElementById('map-section').style.display = 'none';
+  el.style.display = 'block';
+  if(!hist.length) {
+    list.innerHTML = '<div class="hist-empty">📭 Nessuna guida salvata ancora.<br>Genera la prima guida per vederla qui!</div>';
+    return;
+  }
+  list.innerHTML = hist.map(h => {
+    const m = h.meta;
+    const icon = {air:'✈️',rail:'🚂',sea:'⛴️',both:'🔀'}[m.transport]||'🗺️';
+    const date = new Date(h.id).toLocaleDateString('it-IT');
+    return `<div class="hist-item" onclick="loadFromHistory(${h.id})">
+      <div class="hist-icon">${icon}</div>
+      <div class="hist-body">
+        <div class="hist-dest">${esc(m.country)}</div>
+        <div class="hist-meta">${esc(m.ppl)} pers. · ${esc(m.cls)} · ${(m.types||[]).map(esc).join(', ')||'—'} · salvata ${date}</div>
+      </div>
+      <button class="hist-del" onclick="event.stopPropagation();deleteHistory(${h.id})">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function loadFromHistory(id) {
+  const hist = loadHistory();
+  const item = hist.find(h => h.id === id);
+  if(!item) return;
+  currentMeta = item.meta;
+  currentGuideRaw = item.guideText;
+  // repopulate form
+  document.getElementById('country').value = item.meta.country||'';
+  document.getElementById('d1').value = item.meta.d1||'';
+  document.getElementById('d2').value = item.meta.d2||'';
+  document.getElementById('ppl').value = item.meta.ppl||'2';
+  document.getElementById('cls').value = item.meta.cls||'economy';
+  setT(item.meta.transport||'air');
+  document.getElementById('lang').value = item.meta.lang||'italiano';
+  // render guide
+  document.getElementById('hist-section').style.display = 'none';
+  document.getElementById('guide-panel').style.display = 'block';
+  const hdr = document.getElementById('guide-header');
+  hdr.style.background = ({air:'#2E4057',rail:'#1A6B3A',sea:'#1A6B8A',both:'#6B4E1A'})[item.meta.transport]||'#2E4057';
+  document.getElementById('guide-icon').textContent = {air:'✈️',rail:'🚂',sea:'⛴️',both:'🔀'}[item.meta.transport]||'🗺️';
+  document.getElementById('guide-title').textContent = `Guida di viaggio — ${item.meta.country}`;
+  document.getElementById('guide-meta').innerHTML = [
+    fmtDate(item.meta.d1)+' → '+fmtDate(item.meta.d2),
+    item.meta.ppl+' pers.',
+    {air:'Aereo ✈️',rail:'Treno 🚂',sea:'Nave ⛴️',both:'Multi-mezzo 🔀'}[item.meta.transport]||'',
+    item.meta.cls
+  ].map(t=>`<span class="meta-tag">${t}</span>`).join('');
+  document.getElementById('guide-body').innerHTML = markdownToHtml(item.guideText);
+  document.getElementById('stream-bar').style.display = 'none';
+  document.getElementById('action-bar').style.display = 'flex';
+  document.getElementById('btn-print').style.display = 'inline-flex';
+  document.getElementById('btn-pdf').style.display = 'inline-flex';
+  document.getElementById('btn-clear').style.display = 'inline-flex';
+  injectFoodImages();
+  updatePreview();
+}
+
+function deleteHistory(id) {
+  let hist = loadHistory();
+  hist = hist.filter(h => h.id !== id);
+  localStorage.setItem(HIST_KEY, JSON.stringify(hist));
+  updateHistCount();
+  showHistory();
+  toast('🗑️ Guida eliminata dalla cronologia');
+}
+
+let _clearHistPending = false;
+function clearAllHistory() {
+  if (!_clearHistPending) {
+    _clearHistPending = true;
+    document.getElementById('btn-clear-hist').textContent = 'Conferma eliminazione?';
+    document.getElementById('btn-clear-hist').style.background = 'var(--c-red)';
+    document.getElementById('btn-clear-hist').style.color = '#fff';
+    setTimeout(() => {
+      _clearHistPending = false;
+      const btn = document.getElementById('btn-clear-hist');
+      if (btn) { btn.textContent = '🗑️ Elimina tutto'; btn.style.background = ''; btn.style.color = 'var(--c-red)'; }
+    }, 4000);
+    return;
+  }
+  _clearHistPending = false;
+  localStorage.removeItem(HIST_KEY);
+  updateHistCount();
+  showHistory();
+  toast('🗑️ Cronologia eliminata');
+}
+
+/* ════════════════════════════════════════════════════════
+   FOOD IMAGES (Wikipedia REST API)
+════════════════════════════════════════════════════════ */
+// Tiene traccia delle immagini cibo in caricamento per sincronizzare il PDF
+let _foodImgPromises = [];
+
+async function injectFoodImages() {
+  const body = document.getElementById('guide-body');
+  if (!body) return;
+  _foodImgPromises = [];
+  const tables = body.querySelectorAll('table');
+  const lang = {italiano:'it',inglese:'en',tedesco:'de'}[currentMeta.lang] || 'it';
+  for (const table of tables) {
+    const headers = [...table.querySelectorAll('th')].map(th => th.textContent.toLowerCase());
+    const piatto = headers.findIndex(h => h.includes('piatto') || h.includes('dish') || h.includes('gericht'));
+    if (piatto < 0) continue;
+    const rows = table.querySelectorAll('tr');
+    for (let i = 1; i < rows.length; i++) {
+      const cells = rows[i].querySelectorAll('td');
+      if (!cells[piatto]) continue;
+      const dish = cells[piatto].textContent.trim().split(/[(\/–-]/)[0].trim();
+      if (!dish || dish.length < 3) continue;
+      const p = fetchWikiThumb(dish, lang).then(url => {
+        if (!url) return;
+        return new Promise(resolve => {
+          const img = document.createElement('img');
+          img.src = url; img.alt = dish;
+          img.style.cssText = 'width:60px;height:45px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px';
+          img.onload  = resolve;
+          img.onerror = () => { img.remove(); resolve(); };
+          cells[piatto].insertBefore(img, cells[piatto].firstChild);
+        });
+      });
+      _foodImgPromises.push(p);
+    }
+  }
+  await Promise.race([Promise.allSettled(_foodImgPromises), new Promise(r => setTimeout(r, 5000))]);
+}
+
+async function fetchWikiThumb(title, lang) {
+  try {
+    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const r = await fetch(url);
+    if (!r.ok) {
+      if (lang !== 'en') return fetchWikiThumb(title, 'en');
+      return null;
+    }
+    const d = await r.json();
+    return d.thumbnail?.source || null;
+  } catch { return null; }
+}
+
+/* ════════════════════════════════════════════════════════
+   MAP LINKS
+════════════════════════════════════════════════════════ */
+function showMapLinks() {
+  if(!currentMeta.country) return;
+  const dest = currentMeta.country;
+  const locations = extractLocations(currentGuideRaw, dest);
+  const grid = document.getElementById('map-grid');
+  const icons = {'museo':'🏛️','hotel':'🏨','ristorante':'🍽️','stazione':'🚉','aeroporto':'✈️','porto':'⚓','spiaggia':'🏖️','monte':'⛰️','parco':'🌳','castello':'🏰','chiesa':'⛪','mercato':'🛒','default':'📍'};
+  grid.innerHTML = locations.map(loc => {
+    const q = encodeURIComponent(loc.name + ', ' + dest);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+    const embedUrl = `https://maps.google.com/maps?q=${q}&z=14&output=embed`;
+    const ic = icons[loc.type]||icons.default;
+    return `<div class="map-card">
+      <div class="map-card-img"><iframe src="${embedUrl}" loading="lazy" title="${esc(loc.name)}"></iframe></div>
+      <div class="map-card-body">
+        <div class="map-card-name">${ic} ${esc(loc.name)}</div>
+        <div class="map-card-type">${loc.type}</div>
+        <a class="map-card-link" href="${mapsUrl}" target="_blank" rel="noopener">📍 Apri in Maps</a>
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('map-section').style.display = 'block';
+  document.getElementById('map-section').scrollIntoView({behavior:'smooth'});
+}
+
+function extractLocations(text, dest) {
+  // Extract named places from guide text with simple heuristics
+  const places = new Set();
+  const patterns = [
+    /(?:museo|galleria|pinacoteca)\s+(?:di\s+)?([A-ZÀÈÌÒÙ][a-zàèìòùA-Z\s]{3,30})/gi,
+    /(?:hotel|albergo|ostello)\s+([A-ZÀÈÌÒÙ][a-zàèìòùA-Z\s]{3,25})/gi,
+    /(?:ristorante|trattoria|osteria)\s+([A-ZÀÈÌÒÙ][a-zàèìòùA-Z\s]{3,25})/gi,
+    /(?:stazione|aeroporto|porto)\s+(?:di\s+)?([A-ZÀÈÌÒÙ][a-zàèìòùA-Z\s]{3,25})/gi,
+    /(?:piazza|via|corso|lungomare)\s+([A-ZÀÈÌÒÙ][a-zàèìòùA-Z\s]{3,25})/gi,
+    /(?:castello|duomo|basilica|cattedrale)\s+(?:di\s+)?([A-ZÀÈÌÒÙ][a-zàèìòùA-Z\s]{3,25})/gi,
+  ];
+  const typeMap = {museo:'museo',galleria:'museo',hotel:'hotel',albergo:'hotel',ostello:'hotel',ristorante:'ristorante',trattoria:'ristorante',stazione:'stazione',aeroporto:'aeroporto',porto:'porto',piazza:'default',castello:'castello',duomo:'chiesa',basilica:'chiesa'};
+  const locs = [];
+  patterns.forEach(rx => {
+    let m;
+    while((m=rx.exec(text))!==null) {
+      const name = m[1].trim().replace(/\s+/g,' ');
+      if(!places.has(name) && name.length > 3) {
+        places.add(name);
+        const keyword = Object.keys(typeMap).find(k => rx.source.includes(k))||'default';
+        locs.push({name, type: typeMap[keyword]||'default'});
+      }
+    }
+  });
+  // Always add destination itself
+  if(!places.has(dest)) locs.unshift({name:dest, type:'default'});
+  return locs.slice(0,12);
+}
+
+/* ════════════════════════════════════════════════════════
+   PDF DOWNLOAD (jsPDF + html2canvas + link overlay)
+════════════════════════════════════════════════════════ */
+async function downloadPDF() {
+  const body   = document.getElementById('guide-body');
+  if (!body.innerHTML.trim()) { toast('⚠️ Nessuna guida da esportare!'); return; }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pdf-overlay';
+  overlay.innerHTML = `<div class="pdf-modal">
+    <h3>📄 Generazione PDF</h3>
+    <p id="pdf-status">Preparazione…</p>
+    <div class="pdf-progress"><div class="pdf-progress-bar" id="pdf-bar" style="width:5%"></div></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  const setProgress = (pct, msg) => {
+    document.getElementById('pdf-bar').style.width = pct + '%';
+    document.getElementById('pdf-status').textContent = msg;
+  };
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pw = 210, ph = 297, margin = 15;
+    const contentW = pw - margin * 2;
+    const contentH = ph - margin * 2;
+    const pastel = { air:[232,240,247], rail:[230,245,238], sea:[228,243,248], both:[251,243,226] };
+    const accent = { air:[90,143,191],  rail:[46,139,87],   sea:[58,139,168],  both:[176,125,42] };
+    const bg = pastel[currentMeta.transport] || pastel.air;
+    const ac = accent[currentMeta.transport] || accent.air;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    // COPERTINA
+    setProgress(8, 'Copertina…');
+    pdf.setFillColor(...bg); pdf.rect(0, 0, pw, ph, 'F');
+    pdf.setDrawColor(...ac); pdf.setLineWidth(1.5);
+    pdf.line(margin, 60, pw-margin, 60);
+    pdf.setTextColor(26,26,26); pdf.setFontSize(40);
+    pdf.text(currentMeta.country || 'Guida di viaggio', pw/2, 90, { align:'center' });
+    pdf.setFontSize(16); pdf.setTextColor(58,58,58);
+    const tName = { air:'Aereo', rail:'Treno', sea:'Nave', both:'Multi-mezzo' }[currentMeta.transport] || '';
+    pdf.text(tName, pw/2, 105, { align:'center' });
+    pdf.setDrawColor(...ac); pdf.setLineWidth(0.5);
+    pdf.line(pw/2-25, 112, pw/2+25, 112);
+    pdf.setFontSize(14); pdf.setTextColor(50,50,50);
+    if (currentMeta.d1 && currentMeta.d2)
+      pdf.text(fmtDate(currentMeta.d1) + '  →  ' + fmtDate(currentMeta.d2), pw/2, 130, { align:'center' });
+    pdf.text((currentMeta.ppl||'2') + ' persone · ' + (currentMeta.cls||'economy'), pw/2, 142, { align:'center' });
+    if (currentMeta.types && currentMeta.types.length) {
+      pdf.setFontSize(11); pdf.setTextColor(80,80,80);
+      pdf.text(currentMeta.types.join(', '), pw/2, 156, { align:'center', maxWidth: contentW });
+    }
+    pdf.setFontSize(10); pdf.setTextColor(120,120,120);
+    pdf.text('TravelGuide AI', pw/2, 270, { align:'center' });
+    pdf.text(new Date().toLocaleDateString('it-IT'), pw/2, 278, { align:'center' });
+
+    // Attendi immagini cibo prima del render
+    setProgress(12, 'Attesa immagini…');
+    if (typeof _foodImgPromises !== 'undefined' && _foodImgPromises.length) {
+      await Promise.race([Promise.allSettled(_foodImgPromises), new Promise(r => setTimeout(r, 5000))]);
+    }
+    const _imgs = document.getElementById('guide-body').querySelectorAll('img');
+    await Promise.all([..._imgs].map(img => img.complete ? Promise.resolve() :
+      new Promise(r => { img.onload = r; img.onerror = r; setTimeout(r, 3000); })));
+
+    // PREPARA BODY per rendering
+    setProgress(18, 'Preparazione contenuto…');
+    const RENDER_WIDTH = 860;
+    const SCALE = 2;
+    const origWidth   = body.style.width;
+    const origOverflow = body.style.overflow;
+    body.style.width   = RENDER_WIDTH + 'px';
+    body.style.overflow = 'visible';
+    body.classList.add('pdf-capture');
+
+    // Aspetta reflow prima di leggere le coordinate
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+    // RACCOLTA LINK (prima del render — coordinate DOM valide)
+    setProgress(28, 'Mappatura link…');
+    const bodyRect = body.getBoundingClientRect();
+    const links = [];
+    body.querySelectorAll('a[href]').forEach(a => {
+      const r = a.getBoundingClientRect();
+      const x = (r.left - bodyRect.left) * SCALE;
+      const y = (r.top  - bodyRect.top)  * SCALE;
+      const w = r.width  * SCALE;
+      const h = r.height * SCALE;
+      if (w > 1 && h > 1 && a.href && a.href.startsWith('http')) {
+        links.push({ url: a.href, x, y, w, h });
+      }
+    });
+
+    // RENDER HTML → CANVAS
+    setProgress(38, 'Rendering (' + links.length + ' link trovati)…');
+    const canvas = await html2canvas(body, {
+      scale: SCALE,
+      useCORS: true,
+      allowTaint: false,
+      logging: false,
+      backgroundColor: '#FFFFFF',
+      width: RENDER_WIDTH
+    });
+
+    // Ripristina stili
+    body.classList.remove('pdf-capture');
+    body.style.width    = origWidth;
+    body.style.overflow = origOverflow;
+
+    // IMPAGINAZIONE A4
+    setProgress(58, 'Impaginazione A4…');
+    const canvasH  = canvas.height;
+    const canvasW  = canvas.width;
+    const mmPerPx  = contentW / (RENDER_WIDTH * SCALE); // mm per canvas-pixel
+    const sliceHpx = Math.floor(contentH / mmPerPx);    // canvas-pixel per pagina
+    const totalPages = Math.ceil(canvasH / sliceHpx);
+
+    for (let p = 0; p < totalPages; p++) {
+      pdf.addPage();
+      setProgress(58 + Math.round(36 * (p+1) / totalPages), 'Pagina ' + (p+1) + ' / ' + totalPages + '…');
+
+      const sy = p * sliceHpx;
+      const sh = Math.min(sliceHpx, canvasH - sy);
+
+      // Slice canvas per questa pagina
+      const pc = document.createElement('canvas');
+      pc.width  = canvasW;
+      pc.height = sh;
+      pc.getContext('2d').drawImage(canvas, 0, sy, canvasW, sh, 0, 0, canvasW, sh);
+      const imgHmm = sh * mmPerPx;
+      pdf.addImage(pc.toDataURL('image/jpeg', 0.93), 'JPEG', margin, margin, contentW, imgHmm);
+
+      // OVERLAY LINK CLICCABILI per questa pagina
+      const pageTopPx = sy;
+      const pageBotPx = sy + sh;
+      links.forEach(lk => {
+        if (lk.y + lk.h <= pageTopPx || lk.y >= pageBotPx) return;
+        const lx = margin + lk.x * mmPerPx;
+        const ly = margin + (lk.y - pageTopPx) * mmPerPx;
+        const lw = lk.w * mmPerPx;
+        const lh = Math.min(lk.h * mmPerPx, margin + imgHmm - ly);
+        if (lw > 0 && lh > 0) pdf.link(lx, ly, lw, lh, { url: lk.url });
+      });
+
+      // Decorazioni pagina
+      pdf.setDrawColor(...ac); pdf.setLineWidth(0.6);
+      pdf.line(margin, margin-2, pw-margin, margin-2);
+      pdf.setFontSize(8); pdf.setTextColor(150,150,150);
+      pdf.text((p+1) + ' / ' + totalPages, pw/2, ph-8, { align:'center' });
+    }
+
+    // SALVA
+    setProgress(98, 'Salvataggio…');
+    const safeName = (currentMeta.country||'guida').replace(/[^\w\s]/g,'').replace(/\s+/g,'_');
+    pdf.save('TravelGuide_' + safeName + '.pdf');
+    toast('✅ PDF scaricato con ' + links.length + ' link cliccabili!');
+
+  } catch(e) {
+    console.error('PDF error:', e);
+    document.getElementById('guide-body').classList.remove('pdf-capture');
+    document.getElementById('guide-body').style.width = '';
+    toast('❌ Errore PDF: ' + e.message);
+  } finally {
+    overlay.remove();
+  }
+}
+
+
+/* ════════════════════════════════════════════════════════
+   CHECKLIST BAGAGLIO
+════════════════════════════════════════════════════════ */
+async function generateChecklist() {
+  const key = getKey();
+  if (!key || !key.startsWith('sk-ant-')) { toast('🔑 Inserisci una API Key valida!'); return; }
+  if (!currentMeta.country) { toast('⚠️ Genera prima una guida!'); return; }
+
+  const sec = document.getElementById('checklist-section');
+  const body = document.getElementById('checklist-body');
+  const stream = document.getElementById('checklist-stream');
+  sec.style.display = 'block';
+  stream.style.display = 'flex';
+  body.innerHTML = '';
+  sec.scrollIntoView({ behavior: 'smooth' });
+
+  const nDays = daysDiff() || '?';
+  const lang = document.getElementById('lang').value;
+  const langInstr = lang === 'italiano' ? 'Rispondi in italiano.' :
+                    lang === 'inglese'  ? 'Reply in English.' : 'Antworte auf Deutsch.';
+  const prompt = `${langInstr}
+Crea una checklist bagaglio per: ${currentMeta.country}, ${nDays} giorni, ${currentMeta.ppl} persone, mezzo: ${currentMeta.transport}, tipo: ${(currentMeta.types||[]).join(', ')}.
+Formato: categorie con intestazioni ## emoji, ogni voce come "- [ ] voce". Categorie: Documenti, Abbigliamento, Tecnologia, Igiene/Salute, Accessori viaggio. Aggiungi categoria specifica per mezzo di trasporto se utile. Max 40 voci totali, solo essenziali.`;
+
+  let raw = '';
+  try {
+    const useStream = typeof ReadableStream !== 'undefined';
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        stream: useStream,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!resp.ok) {
+      let errMsg = `HTTP ${resp.status}`;
+      try { const err = await resp.json(); errMsg = err.error?.message || errMsg; } catch(_){}
+      throw new Error(errMsg);
+    }
+    if (useStream && resp.body && resp.body.getReader) {
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const ev = JSON.parse(data);
+            if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+              raw += ev.delta.text;
+              body.innerHTML = checklistToHtml(raw);
+            }
+          } catch (_) {}
+        }
+      }
+    } else {
+      const data = await resp.json();
+      raw = (data.content && data.content[0] && data.content[0].text) || '';
+    }
+    stream.style.display = 'none';
+    body.innerHTML = checklistToHtml(raw);
+    document.getElementById('btn-checklist-pdf').style.display = 'inline-flex';
+    toast('✅ Checklist bagaglio pronta!');
+  } catch (e) {
+    stream.style.display = 'none';
+    body.innerHTML += `<div style="color:var(--c-red);padding:12px;border:1px solid var(--c-red);border-radius:8px">❌ ${e.message}</div>`;
+  }
+}
+
+function checklistToHtml(md) {
+  // ponytail: reuse markdownToHtml then convert [ ] / [x] to checkboxes
+  let h = markdownToHtml(md);
+  h = h.replace(/\[ \]\s*/g, '<input type="checkbox" style="margin-right:6px;accent-color:var(--c-blue)">');
+  h = h.replace(/\[x\]\s*/gi, '<input type="checkbox" checked style="margin-right:6px;accent-color:var(--c-blue)">');
+  return h;
+}
+
+/* ════════════════════════════════════════════════════════
+   CHECKLIST PDF
+════════════════════════════════════════════════════════ */
+async function downloadChecklistPDF() {
+  const body = document.getElementById('checklist-body');
+  if (!body.innerHTML.trim()) { toast('⚠️ Nessuna checklist da esportare!'); return; }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pdf-overlay';
+  overlay.innerHTML = `<div class="pdf-modal"><h3>📄 PDF Checklist</h3><p id="cl-pdf-status">Rendering…</p><div class="pdf-progress"><div class="pdf-progress-bar" id="cl-pdf-bar" style="width:20%"></div></div></div>`;
+  document.body.appendChild(overlay);
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pw = 210, margin = 15, contentW = pw - margin * 2;
+
+    // Title
+    pdf.setFontSize(22);
+    pdf.setTextColor(26, 26, 26);
+    pdf.text('Checklist bagaglio - ' + (currentMeta.country || ''), pw / 2, 25, { align: 'center' });
+    pdf.setFontSize(12);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(fmtDate(currentMeta.d1) + ' - ' + fmtDate(currentMeta.d2) + ', ' + currentMeta.ppl + ' pers.', pw / 2, 35, { align: 'center' });
+    pdf.setDrawColor(200); pdf.line(margin, 40, pw - margin, 40);
+
+    document.getElementById('cl-pdf-bar').style.width = '40%';
+    document.getElementById('cl-pdf-status').textContent = 'Rendering checklist…';
+
+    const origWidth = body.style.width;
+    body.style.width = '750px';
+    body.classList.add('pdf-capture');
+    const canvas = await html2canvas(body, { scale: 2, useCORS: true, logging: false, backgroundColor: '#FFFFFF' });
+    body.classList.remove('pdf-capture');
+    body.style.width = origWidth;
+
+    document.getElementById('cl-pdf-bar').style.width = '70%';
+
+    const canvasW = canvas.width;
+    const canvasH = canvas.height;
+    const scale = contentW / (canvasW / 2);
+    const startY = 45;
+    const contentH = 297 - margin - startY;
+    const sliceH = contentH / scale * 2;
+    const totalPages = Math.ceil(canvasH / sliceH);
+
+    for (let p = 0; p < totalPages; p++) {
+      if (p > 0) { pdf.addPage(); }
+      const sy = p * sliceH;
+      const sh = Math.min(sliceH, canvasH - sy);
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvasW;
+      pageCanvas.height = sh;
+      pageCanvas.getContext('2d').drawImage(canvas, 0, sy, canvasW, sh, 0, 0, canvasW, sh);
+      const imgH = (sh / 2) * scale;
+      pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, p === 0 ? startY : margin, contentW, imgH);
+    }
+
+    document.getElementById('cl-pdf-bar').style.width = '95%';
+    const safeName = (currentMeta.country || 'checklist').replace(/[^a-zA-Z0-9àèìòùÀÈÌÒÙ\s]/g, '').replace(/\s+/g, '_');
+    pdf.save(`Checklist_${safeName}.pdf`);
+    toast('✅ PDF checklist scaricato!');
+  } catch (e) {
+    toast('❌ Errore PDF: ' + e.message);
+  } finally {
+    overlay.remove();
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   THEME TOGGLE
+════════════════════════════════════════════════════════ */
+function toggleTheme() {
+  const dark = document.documentElement.classList.toggle('dark');
+  document.documentElement.classList.toggle('light', !dark);
+  document.getElementById('btn-theme').textContent = dark ? '☀️' : '🌙';
+  localStorage.setItem('tg_theme', dark ? 'dark' : 'light');
+}
+
+/* ════════════════════════════════════════════════════════
+   COPY & CLEAR
+════════════════════════════════════════════════════════ */
+function copyGuide() {
+  navigator.clipboard.writeText(currentGuideRaw).then(()=>toast('📋 Testo copiato negli appunti!')).catch(()=>toast('❌ Impossibile copiare'));
+}
+
+function clearGuide() {
+  document.getElementById('guide-panel').style.display = 'none';
+  document.getElementById('map-section').style.display = 'none';
+  document.getElementById('hist-section').style.display = 'none';
+  document.getElementById('welcome-panel').style.display = 'block';
+  document.getElementById('btn-print').style.display = 'none';
+  document.getElementById('btn-pdf').style.display = 'none';
+  document.getElementById('btn-clear').style.display = 'none';
+  document.getElementById('country').value = '';
+  document.getElementById('notes').value = '';
+  document.getElementById('note-len').textContent = '0';
+  updatePreview();
+}
+
+/* ════════════════════════════════════════════════════════
+   TOAST
+════════════════════════════════════════════════════════ */
+function toast(msg, dur=3000) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), dur);
+}
+
+/* ════════════════════════════════════════════════════════
+   INIT
+════════════════════════════════════════════════════════ */
+(function init(){
+  // Set default dates (+60 / +70 days)
+  const today = new Date();
+  const d1 = new Date(today); d1.setDate(d1.getDate()+60);
+  const d2 = new Date(today); d2.setDate(d2.getDate()+70);
+  const iso = d => d.toISOString().slice(0,10);
+  document.getElementById('d1').value = iso(d1);
+  document.getElementById('d2').value = iso(d2);
+  // Load saved API key
+  const savedKey = localStorage.getItem('tg_apikey');
+  if(savedKey) {
+    document.getElementById('apikey').value = savedKey;
+    document.getElementById('key-ok').style.display = 'block';
+  }
+  updateHistCount();
+  // Enter key on country field
+  // Theme
+  const saved = localStorage.getItem('tg_theme');
+  if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme:dark)').matches)) {
+    document.documentElement.classList.add('dark');
+    document.getElementById('btn-theme').textContent = '☀️';
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  document.getElementById('country').addEventListener('keydown', e => { if(e.key==='Enter') generate(); });
+  // Update preview on date change
+  document.getElementById('d1').addEventListener('change', updatePreview);
+  document.getElementById('d2').addEventListener('change', updatePreview);
+})();
+</script>
+</body>
+</html>
