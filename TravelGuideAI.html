@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TravelGuide AI</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1A5FA8">
+<title>Strauss Travel AI</title>
 <style>
 /* ── RESET & BASE ─────────────────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
@@ -160,7 +162,9 @@ textarea{resize:vertical;min-height:56px}
 .map-grid{padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
 .map-card{border:1px solid var(--c-border);border-radius:var(--radius);overflow:hidden;transition:box-shadow .15s}
 .map-card:hover{box-shadow:var(--shadow-lg)}
-.map-card-img{width:100%;height:100px;object-fit:cover;background:var(--c-bg3);display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--c-text3)}
+.map-card-img{width:100%;height:120px;background:var(--c-bg3);overflow:hidden;position:relative}
+.map-card-img iframe{width:100%;height:100%;border:none;pointer-events:none}
+.map-card-img .map-fallback{display:flex;align-items:center;justify-content:center;height:100%;font-size:32px;color:var(--c-text3)}
 .map-card-body{padding:8px 10px}
 .map-card-name{font-size:12px;font-weight:600;color:var(--c-text)}
 .map-card-type{font-size:10px;color:var(--c-text3);margin-bottom:6px}
@@ -184,13 +188,62 @@ textarea{resize:vertical;min-height:56px}
   @page{margin:1.5cm;size:A4}
 }
 
+/* ── DARK THEME ───────────────────────────────────────────── */
+.dark{
+  --c-bg:#1A1A1A;--c-bg2:#242424;--c-bg3:#2E2E2E;
+  --c-border:#3A3A3A;--c-border2:#4A4A4A;
+  --c-text:#E8E4DE;--c-text2:#A8A49C;--c-text3:#787470;
+  --c-blue:#4A9BF5;--c-blue-bg:#1A2A3A;--c-blue-light:#2A3A50;
+  --c-green:#3ABF6A;--c-green-bg:#1A2E24;
+  --c-amber:#D4A03A;--c-amber-bg:#2E2A1A;
+  --c-red:#F06A4A;--c-navy:#3A5A7A;--c-sea:#3A9ABF;--c-sea-bg:#1A2E34;
+  --c-tip:#1A2A3A;--c-warn:#2E2A1A;--c-ok:#1A2E24;
+}
+@media(prefers-color-scheme:dark){
+  :root:not(.light){
+    --c-bg:#1A1A1A;--c-bg2:#242424;--c-bg3:#2E2E2E;
+    --c-border:#3A3A3A;--c-border2:#4A4A4A;
+    --c-text:#E8E4DE;--c-text2:#A8A49C;--c-text3:#787470;
+    --c-blue:#4A9BF5;--c-blue-bg:#1A2A3A;--c-blue-light:#2A3A50;
+    --c-green:#3ABF6A;--c-green-bg:#1A2E24;
+    --c-amber:#D4A03A;--c-amber-bg:#2E2A1A;
+    --c-red:#F06A4A;--c-navy:#3A5A7A;--c-sea:#3A9ABF;--c-sea-bg:#1A2E34;
+    --c-tip:#1A2A3A;--c-warn:#2E2A1A;--c-ok:#1A2E24;
+  }
+}
+
 /* ── RESPONSIVE ───────────────────────────────────────────── */
 @media(max-width:768px){
   .app{grid-template-columns:1fr}
   .sidebar{border-right:none;border-bottom:1px solid var(--c-border)}
   .trsel{grid-template-columns:1fr 1fr}
 }
+/* ── PDF OVERLAY ─────────────────────────────────────── */
+.pdf-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center}
+.pdf-modal{background:var(--c-bg2);border-radius:var(--radius-lg);padding:32px 40px;text-align:center;box-shadow:var(--shadow-lg);max-width:340px}
+.pdf-modal h3{font-size:16px;margin-bottom:8px;color:var(--c-text)}
+.pdf-modal p{font-size:12px;color:var(--c-text2);margin-bottom:4px}
+.pdf-progress{width:100%;height:6px;border-radius:3px;background:var(--c-bg3);margin-top:12px;overflow:hidden}
+.pdf-progress-bar{height:100%;background:var(--c-blue);border-radius:3px;transition:width .3s}
+/* ── PDF CAPTURE: force print-friendly colors + bigger fonts ── */
+.pdf-capture{background:#fff!important;color:#1A1A1A!important;font-size:16px!important;line-height:1.8!important}
+.pdf-capture *{color:#1A1A1A!important}
+.pdf-capture h2{color:#2E4057!important;border-bottom-color:#C8DAE8!important;font-size:20px!important;margin:28px 0 12px!important}
+.pdf-capture h3{color:#1A1A1A!important;font-size:17px!important;margin:18px 0 8px!important}
+.pdf-capture p{font-size:15px!important;margin-bottom:12px!important}
+.pdf-capture li{font-size:15px!important;margin-bottom:4px!important}
+.pdf-capture th{background:#E8F0F7!important;color:#1A1A1A!important;font-size:13px!important;padding:8px 12px!important}
+.pdf-capture td{color:#1A1A1A!important;border-bottom-color:#ECECEC!important;font-size:13px!important;padding:7px 12px!important}
+.pdf-capture tr:nth-child(even) td{background:#FAFAFA!important}
+.pdf-capture tr:hover td{background:#FAFAFA!important}
+.pdf-capture blockquote{background:#F0F6FB!important;border-left-color:#5A8FBF!important;color:#333!important;font-size:14px!important;padding:12px 16px!important}
+.pdf-capture blockquote.warn{background:#FFF8EE!important;border-left-color:#D4A03A!important;color:#333!important}
+.pdf-capture a{color:#2E6FAF!important;font-size:inherit!important}
+.pdf-capture em{color:#444!important}
+.pdf-capture code{background:#F0F0F0!important;color:#1A1A1A!important}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
 
@@ -200,10 +253,12 @@ textarea{resize:vertical;min-height:56px}
   <header class="topbar">
     <span style="font-size:20px">🗺️</span>
     <div>
-      <div class="logo">Travel<span>Guide</span> <small class="logo-sub">AI</small></div>
+      <div class="logo">Strauss<span>Travel</span> <small class="logo-sub">AI</small></div>
     </div>
     <div class="tb-spacer"></div>
+    <button class="tb-btn" onclick="toggleTheme()" id="btn-theme" title="Tema chiaro/scuro">🌙</button>
     <button class="tb-btn" onclick="showHistory()" title="Cronologia guide">📚 Cronologia (<span id="hist-count">0</span>)</button>
+    <button class="tb-btn primary" onclick="downloadPDF()" id="btn-pdf" style="display:none" title="Scarica PDF con link cliccabili">📄 PDF</button>
     <button class="tb-btn" onclick="window.print()" id="btn-print" style="display:none" title="Stampa/Salva PDF">🖨️ Stampa</button>
     <button class="tb-btn" onclick="clearGuide()" id="btn-clear" style="display:none">✕ Nuova ricerca</button>
   </header>
@@ -334,7 +389,7 @@ textarea{resize:vertical;min-height:56px}
     <div id="welcome-panel" class="welcome">
       <div style="font-size:48px;margin-bottom:12px">✈️🚂⛴️</div>
       <h2>Pianifica il tuo viaggio perfetto</h2>
-      <p>TravelGuide AI genera guide di viaggio complete con trasporti, alberghi, itinerari A/B/C, budget comparativo e consigli pratici — powered by Claude AI.</p>
+      <p>Strauss Travel AI genera guide di viaggio complete con trasporti, alberghi, itinerari A/B/C, budget comparativo e consigli pratici — powered by Claude AI.</p>
       <div class="steps-row">
         <div class="step"><div class="step-n">1</div><span>Inserisci destinazione e date</span></div>
         <div class="step"><div class="step-n">2</div><span>Scegli mezzo e tipo vacanza</span></div>
@@ -361,8 +416,10 @@ textarea{resize:vertical;min-height:56px}
       </div>
       <div class="guide-body" id="guide-body"></div>
       <div class="action-bar" id="action-bar" style="display:none">
-        <button class="action-btn blue" onclick="window.print()">🖨️ Stampa / Salva PDF</button>
+        <button class="action-btn blue" onclick="downloadPDF()">📄 Scarica PDF</button>
+        <button class="action-btn" onclick="window.print()">🖨️ Stampa</button>
         <button class="action-btn green" onclick="copyGuide()">📋 Copia testo</button>
+        <button class="action-btn" onclick="generateChecklist()" id="btn-checklist">🧳 Checklist bagaglio</button>
         <button class="action-btn" onclick="showMapLinks()">🗺️ Mappa luoghi</button>
         <button class="action-btn" onclick="clearGuide()">🔄 Nuova ricerca</button>
       </div>
@@ -378,10 +435,25 @@ textarea{resize:vertical;min-height:56px}
       <div class="map-grid" id="map-grid"></div>
     </div>
 
+    <!-- CHECKLIST PANEL (hidden initially) -->
+    <div id="checklist-section" class="hist-panel" style="display:none">
+      <div class="hist-header">
+        <h3>🧳 Checklist bagaglio</h3>
+        <button class="tb-btn" onclick="downloadChecklistPDF()" id="btn-checklist-pdf" style="font-size:11px;display:none">📄 PDF</button>
+        <button class="tb-btn" onclick="document.getElementById('checklist-section').style.display='none'" style="font-size:11px">✕ Chiudi</button>
+      </div>
+      <div class="streaming-bar" id="checklist-stream" style="display:none">
+        <div class="dot-pulse"><span></span><span></span><span></span></div>
+        <span>Claude prepara la checklist…</span>
+      </div>
+      <div id="checklist-body" style="padding:16px" class="guide-body"></div>
+    </div>
+
     <!-- HISTORY PANEL (hidden initially) -->
     <div id="hist-section" class="hist-panel" style="display:none">
       <div class="hist-header">
         <h3>📚 Cronologia guide salvate</h3>
+        <button class="tb-btn" onclick="clearAllHistory()" id="btn-clear-hist" style="font-size:11px;color:var(--c-red);border-color:var(--c-red)">🗑️ Elimina tutto</button>
         <button class="tb-btn" onclick="document.getElementById('hist-section').style.display='none'" style="font-size:11px">✕ Chiudi</button>
       </div>
       <div id="hist-list"></div>
@@ -451,6 +523,7 @@ function daysDiff() {
   const d = Math.round((new Date(b)-new Date(a))/86400000);
   return d > 0 ? d : null;
 }
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
 function noteCounter(el) {
   el.value = el.value.slice(0,400);
   document.getElementById('note-len').textContent = el.value.length;
@@ -558,11 +631,20 @@ Prezzi per ${ppl} persone, in Euro, per ${nDays} giorni. Riga **TOTALE** in gras
 
 ## 💡 6. Consigli pratici
 - Tabella clima/abbigliamento mese per mese e per zona
-- Lista gastronomia locale: Piatto | Descrizione | Dove trovarlo
+- Tabella gastronomia locale: Piatto | Descrizione | Dove provarlo (NON inserire link immagine, le immagini vengono caricate automaticamente dall'app)
 - > ⚠️ Sicurezza: avvertenze specifiche per ${country}
 - Tabella app utili: App | Utilizzo | Link/Download
 ${transport==='rail'||transport==='both'?'- Consigli per viaggiatori in treno: app monitoraggio, bagaglio, vagoni notte, rimborsi ritardi EU':''}
 ${transport==='sea'||transport==='both'?'- Consigli per viaggiatori in nave: imbarco, cabine, mal di mare, servizi a bordo':''}
+
+## 🚇 7. Metropolitana e trasporto urbano
+IMPORTANTE: se ${country} ha metropolitana, metro, U-Bahn, tram o trasporto rapido urbano, DEVI includere questa sezione. Vienna, Roma, Milano, Parigi, Londra, Madrid, Berlino, Praga, Budapest ecc. hanno tutte una rete metro.
+- Tabella linee principali: Linea | Colore | Percorso (capolinea) | Frequenza | Biglietto singolo | Abbonamento turistico
+- Fermate utili per turisti: Fermata | Linea | Cosa c'è vicino (attrazioni/hotel zone)
+- Link al sito ufficiale della metro e all'app per orari/percorsi
+- Link alla mappa ufficiale della rete (PDF o immagine), se disponibile: ![Mappa metro](URL mappa ufficiale o Wikimedia Commons)
+- Consigli: orari di punta da evitare, sicurezza, biglietterie automatiche vs app, pass turistici (es. Roma Pass, Paris Visite, Vienna Card)
+Se la citta NON ha metropolitana (es. piccoli centri, isole), scrivi solo: "Questa destinazione non dispone di rete metropolitana" e passa oltre.
 
 Prezzi in Euro realistici per ${new Date().getFullYear()}. Tono professionale e coinvolgente.`;
 }
@@ -592,6 +674,7 @@ async function generate() {
   document.getElementById('welcome-panel').style.display = 'none';
   document.getElementById('hist-section').style.display = 'none';
   document.getElementById('map-section').style.display = 'none';
+  document.getElementById('checklist-section').style.display = 'none';
   const gp = document.getElementById('guide-panel');
   gp.style.display = 'block';
   const hdr = document.getElementById('guide-header');
@@ -608,6 +691,7 @@ async function generate() {
   document.getElementById('stream-bar').style.display = 'flex';
   document.getElementById('action-bar').style.display = 'none';
   document.getElementById('btn-print').style.display = 'none';
+  document.getElementById('btn-pdf').style.display = 'none';
   document.getElementById('btn-clear').style.display = 'inline-flex';
   document.getElementById('guide-body').innerHTML = '';
   const btn = document.getElementById('gbtn');
@@ -615,81 +699,76 @@ async function generate() {
   document.getElementById('gbtn-txt').textContent = 'Generazione in corso…';
   document.getElementById('gbtn-ico').textContent = '⏳';
 
-  // Detect Safari iOS / WebKit — streaming ReadableStream non supportato
-  const isSafariIOS = /iP(hone|ad|od)/.test(navigator.userAgent) ||
-    (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
-
   currentGuideRaw = '';
+  const canStream = typeof ReadableStream !== 'undefined' && typeof Response !== 'undefined';
   try {
-    const reqHeaders = {
-      'Content-Type': 'application/json',
-      'x-api-key': key,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-access': 'true'
-    };
-    const reqBody = {
+    const apiBody = {
       model: 'claude-sonnet-4-6',
-      max_tokens: 8192,
-      stream: !isSafariIOS,
+      max_tokens: 12000,
+      stream: canStream,
       messages: [{ role:'user', content: buildPrompt() }]
     };
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify(apiBody)
+    });
+    if(!resp.ok) {
+      let errMsg = `HTTP ${resp.status}`;
+      try { const err = await resp.json(); errMsg = err.error?.message || errMsg; } catch(_){}
+      throw new Error(errMsg);
+    }
 
-    if (isSafariIOS) {
-      // ── SAFARI iOS: chiamata singola senza streaming ─────────────────
-      document.getElementById('stream-bar').querySelector('span').textContent =
-        'Claude sta elaborando la guida\u2026 (30\u201360 sec, non chiudere la pagina)';
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: reqHeaders, body: JSON.stringify(reqBody)
-      });
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error?.message || 'HTTP ' + resp.status);
-      }
-      const data = await resp.json();
-      currentGuideRaw = (data.content && data.content[0] && data.content[0].text) || '';
-      document.getElementById('guide-body').innerHTML = markdownToHtml(currentGuideRaw);
-    } else {
-      // ── ALTRI BROWSER: streaming SSE ─────────────────────────────────
-      const resp = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST', headers: reqHeaders, body: JSON.stringify(reqBody)
-      });
-      if (!resp.ok) {
-        const err = await resp.json();
-        throw new Error(err.error?.message || 'HTTP ' + resp.status);
-      }
+    if (canStream && resp.body && resp.body.getReader) {
+      // Streaming path
       const reader = resp.body.getReader();
       const dec = new TextDecoder();
       let buf = '';
-      while (true) {
+      while(true) {
         const {done, value} = await reader.read();
-        if (done) break;
-        buf += dec.decode(value, {stream: true});
+        if(done) break;
+        buf += dec.decode(value, {stream:true});
         const lines = buf.split('\n');
         buf = lines.pop();
-        for (const line of lines) {
-          if (!line.startsWith('data: ')) continue;
+        for(const line of lines) {
+          if(!line.startsWith('data: ')) continue;
           const data = line.slice(6);
-          if (data === '[DONE]') continue;
+          if(data==='[DONE]') continue;
           try {
             const ev = JSON.parse(data);
-            if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+            if(ev.type==='content_block_delta' && ev.delta?.type==='text_delta') {
               currentGuideRaw += ev.delta.text;
               document.getElementById('guide-body').innerHTML = markdownToHtml(currentGuideRaw);
+              const mb = document.getElementById('guide-body');
+              mb.scrollTop = mb.scrollHeight;
             }
-          } catch(_) {}
+          } catch(_){}
         }
       }
+    } else {
+      // Non-streaming fallback (iOS Edge / older WebKit)
+      const data = await resp.json();
+      currentGuideRaw = (data.content && data.content[0] && data.content[0].text) || '';
+      document.getElementById('guide-body').innerHTML = markdownToHtml(currentGuideRaw);
     }
+
     // Done
     document.getElementById('stream-bar').style.display = 'none';
     document.getElementById('action-bar').style.display = 'flex';
     document.getElementById('btn-print').style.display = 'inline-flex';
+    document.getElementById('btn-pdf').style.display = 'inline-flex';
     saveToHistory(currentMeta, currentGuideRaw);
     updateHistCount();
+    injectFoodImages();
     toast('✅ Guida generata e salvata in cronologia!');
   } catch(e) {
     document.getElementById('stream-bar').style.display = 'none';
-    document.getElementById('guide-body').innerHTML += `<div style="color:#C94F2A;padding:12px;border:1px solid #C94F2A;border-radius:8px;margin-top:12px">❌ Errore: ${e.message}</div>`;
+    document.getElementById('guide-body').innerHTML += `<div style="color:#C94F2A;padding:12px;border:1px solid #C94F2A;border-radius:8px;margin-top:12px">❌ Errore: ${e.message}<br><small style="color:#888">Browser: ${navigator.userAgent.slice(-60)}</small></div>`;
     toast('❌ Errore API: '+e.message);
   } finally {
     btn.disabled = false;
@@ -721,6 +800,8 @@ function markdownToHtml(md) {
     .replace(/^&gt; ⚠️(.+)$/gm,'<blockquote class="warn">⚠️$1</blockquote>')
     // blockquote normal
     .replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>')
+    // images
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^\)]+)\)/g,'<img src="$2" alt="$1" style="max-width:200px;border-radius:6px;margin:4px 0;vertical-align:middle" loading="lazy" onerror="this.style.display=\'none\'">')
     // links
     .replace(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>')
     // bare urls
@@ -803,8 +884,8 @@ function showHistory() {
     return `<div class="hist-item" onclick="loadFromHistory(${h.id})">
       <div class="hist-icon">${icon}</div>
       <div class="hist-body">
-        <div class="hist-dest">${m.country}</div>
-        <div class="hist-meta">${m.ppl} pers. · ${m.cls} · ${(m.types||[]).join(', ')||'—'} · salvata ${date}</div>
+        <div class="hist-dest">${esc(m.country)}</div>
+        <div class="hist-meta">${esc(m.ppl)} pers. · ${esc(m.cls)} · ${(m.types||[]).map(esc).join(', ')||'—'} · salvata ${date}</div>
       </div>
       <button class="hist-del" onclick="event.stopPropagation();deleteHistory(${h.id})">✕</button>
     </div>`;
@@ -842,7 +923,9 @@ function loadFromHistory(id) {
   document.getElementById('stream-bar').style.display = 'none';
   document.getElementById('action-bar').style.display = 'flex';
   document.getElementById('btn-print').style.display = 'inline-flex';
+  document.getElementById('btn-pdf').style.display = 'inline-flex';
   document.getElementById('btn-clear').style.display = 'inline-flex';
+  injectFoodImages();
   updatePreview();
 }
 
@@ -855,6 +938,71 @@ function deleteHistory(id) {
   toast('🗑️ Guida eliminata dalla cronologia');
 }
 
+let _clearHistPending = false;
+function clearAllHistory() {
+  if (!_clearHistPending) {
+    _clearHistPending = true;
+    document.getElementById('btn-clear-hist').textContent = 'Conferma eliminazione?';
+    document.getElementById('btn-clear-hist').style.background = 'var(--c-red)';
+    document.getElementById('btn-clear-hist').style.color = '#fff';
+    setTimeout(() => {
+      _clearHistPending = false;
+      const btn = document.getElementById('btn-clear-hist');
+      if (btn) { btn.textContent = '🗑️ Elimina tutto'; btn.style.background = ''; btn.style.color = 'var(--c-red)'; }
+    }, 4000);
+    return;
+  }
+  _clearHistPending = false;
+  localStorage.removeItem(HIST_KEY);
+  updateHistCount();
+  showHistory();
+  toast('🗑️ Cronologia eliminata');
+}
+
+/* ════════════════════════════════════════════════════════
+   FOOD IMAGES (Wikipedia REST API)
+════════════════════════════════════════════════════════ */
+async function injectFoodImages() {
+  const body = document.getElementById('guide-body');
+  if (!body) return;
+  const tables = body.querySelectorAll('table');
+  const lang = {italiano:'it',inglese:'en',tedesco:'de'}[currentMeta.lang] || 'it';
+  for (const table of tables) {
+    const headers = [...table.querySelectorAll('th')].map(th => th.textContent.toLowerCase());
+    const piatto = headers.findIndex(h => h.includes('piatto') || h.includes('dish') || h.includes('gericht'));
+    if (piatto < 0) continue;
+    const rows = table.querySelectorAll('tr');
+    for (let i = 1; i < rows.length; i++) {
+      const cells = rows[i].querySelectorAll('td');
+      if (!cells[piatto]) continue;
+      const dish = cells[piatto].textContent.trim().split(/[(/–-]/)[0].trim();
+      if (!dish || dish.length < 3) continue;
+      fetchWikiThumb(dish, lang).then(url => {
+        if (!url) return;
+        const img = document.createElement('img');
+        img.src = url;
+        img.alt = dish;
+        img.style.cssText = 'width:60px;height:45px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:6px';
+        img.onerror = function() { this.remove(); };
+        cells[piatto].insertBefore(img, cells[piatto].firstChild);
+      });
+    }
+  }
+}
+
+async function fetchWikiThumb(title, lang) {
+  try {
+    const url = `https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+    const r = await fetch(url);
+    if (!r.ok) {
+      if (lang !== 'en') return fetchWikiThumb(title, 'en');
+      return null;
+    }
+    const d = await r.json();
+    return d.thumbnail?.source || null;
+  } catch { return null; }
+}
+
 /* ════════════════════════════════════════════════════════
    MAP LINKS
 ════════════════════════════════════════════════════════ */
@@ -865,17 +1013,16 @@ function showMapLinks() {
   const grid = document.getElementById('map-grid');
   const icons = {'museo':'🏛️','hotel':'🏨','ristorante':'🍽️','stazione':'🚉','aeroporto':'✈️','porto':'⚓','spiaggia':'🏖️','monte':'⛰️','parco':'🌳','castello':'🏰','chiesa':'⛪','mercato':'🛒','default':'📍'};
   grid.innerHTML = locations.map(loc => {
-    const mapsUrl = `https://www.google.com/maps/search/${encodeURIComponent(loc.name+', '+dest)}`;
-    const streetUrl = `https://www.google.com/maps?q=${encodeURIComponent(loc.name+', '+dest)}&layer=c`;
+    const q = encodeURIComponent(loc.name + ', ' + dest);
+    const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${q}`;
+    const embedUrl = `https://maps.google.com/maps?q=${q}&z=14&output=embed`;
     const ic = icons[loc.type]||icons.default;
     return `<div class="map-card">
-      <div class="map-card-img">${ic}</div>
+      <div class="map-card-img"><iframe src="${embedUrl}" loading="lazy" title="${esc(loc.name)}"></iframe></div>
       <div class="map-card-body">
-        <div class="map-card-name">${loc.name}</div>
+        <div class="map-card-name">${ic} ${esc(loc.name)}</div>
         <div class="map-card-type">${loc.type}</div>
         <a class="map-card-link" href="${mapsUrl}" target="_blank" rel="noopener">📍 Apri in Maps</a>
-        &nbsp;·&nbsp;
-        <a class="map-card-link" href="${streetUrl}" target="_blank" rel="noopener">🚶 Street View</a>
       </div>
     </div>`;
   }).join('');
@@ -913,6 +1060,342 @@ function extractLocations(text, dest) {
 }
 
 /* ════════════════════════════════════════════════════════
+   PDF DOWNLOAD (jsPDF + html2canvas + link overlay)
+════════════════════════════════════════════════════════ */
+async function downloadPDF() {
+  const body = document.getElementById('guide-body');
+  const header = document.getElementById('guide-header');
+  if (!body.innerHTML.trim()) { toast('⚠️ Nessuna guida da esportare!'); return; }
+
+  // Show progress overlay
+  const overlay = document.createElement('div');
+  overlay.className = 'pdf-overlay';
+  overlay.innerHTML = `<div class="pdf-modal">
+    <h3>📄 Generazione PDF</h3>
+    <p id="pdf-status">Rendering della guida…</p>
+    <div class="pdf-progress"><div class="pdf-progress-bar" id="pdf-bar" style="width:10%"></div></div>
+  </div>`;
+  document.body.appendChild(overlay);
+  const setProgress = (pct, msg) => {
+    document.getElementById('pdf-bar').style.width = pct + '%';
+    document.getElementById('pdf-status').textContent = msg;
+  };
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const pw = 210, ph = 297, margin = 15;
+    const contentW = pw - margin * 2;
+    const contentH = ph - margin * 2;
+
+    // ── COVER PAGE (layout B — pastello) ──
+    setProgress(15, 'Creazione copertina...');
+    const pastel = { air: [232,240,247], rail: [230,245,238], sea: [228,243,248], both: [251,243,226] };
+    const accent = { air: [90,143,191], rail: [46,139,87], sea: [58,139,168], both: [176,125,42] };
+    const bg = pastel[currentMeta.transport] || pastel.air;
+    const ac = accent[currentMeta.transport] || accent.air;
+    pdf.setFillColor(...bg);
+    pdf.rect(0, 0, pw, ph, 'F');
+    // accent line top
+    pdf.setDrawColor(...ac);
+    pdf.setLineWidth(1.5);
+    pdf.line(margin, 60, pw - margin, 60);
+    // title
+    pdf.setTextColor(26, 26, 26);
+    pdf.setFontSize(40);
+    pdf.text(currentMeta.country || 'Guida di viaggio', pw / 2, 90, { align: 'center' });
+    // subtitle transport
+    pdf.setFontSize(16);
+    pdf.setTextColor(58, 58, 58);
+    const tName = { air: 'Aereo', rail: 'Treno', sea: 'Nave', both: 'Multi-mezzo' }[currentMeta.transport] || '';
+    pdf.text(tName, pw / 2, 105, { align: 'center' });
+    // accent line under title
+    pdf.setDrawColor(...ac);
+    pdf.setLineWidth(0.5);
+    pdf.line(pw / 2 - 25, 112, pw / 2 + 25, 112);
+    // details
+    pdf.setFontSize(14);
+    pdf.setTextColor(50, 50, 50);
+    if (currentMeta.d1 && currentMeta.d2) {
+      pdf.text(fmtDate(currentMeta.d1) + '  -  ' + fmtDate(currentMeta.d2), pw / 2, 130, { align: 'center' });
+    }
+    pdf.text((currentMeta.ppl || '2') + ' persone, ' + (currentMeta.cls || 'economy'), pw / 2, 142, { align: 'center' });
+    if (currentMeta.types && currentMeta.types.length) {
+      pdf.setFontSize(12);
+      pdf.setTextColor(68, 68, 68);
+      pdf.text(currentMeta.types.join(', '), pw / 2, 158, { align: 'center', maxWidth: contentW });
+    }
+    // footer
+    pdf.setFontSize(10);
+    pdf.setTextColor(102, 102, 102);
+    pdf.text('Strauss Travel AI', pw / 2, 270, { align: 'center' });
+    pdf.text(new Date().toLocaleDateString('it-IT'), pw / 2, 278, { align: 'center' });
+
+    // ── RENDER GUIDE BODY TO CANVAS ──
+    setProgress(30, 'Rendering contenuto…');
+    const origWidth = body.style.width;
+    body.style.width = '800px';
+    body.classList.add('pdf-capture');
+    const canvas = await html2canvas(body, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#FFFFFF'
+    });
+    body.classList.remove('pdf-capture');
+    body.style.width = origWidth;
+
+    // ── COLLECT LINK POSITIONS BEFORE SLICING ──
+    setProgress(50, 'Mappatura link…');
+    const links = [];
+    const bodyRect = body.getBoundingClientRect();
+    body.querySelectorAll('a[href]').forEach(a => {
+      const r = a.getBoundingClientRect();
+      links.push({
+        url: a.href,
+        // positions relative to body top, in canvas pixels (scale=2)
+        x: (r.left - bodyRect.left) * 2,
+        y: (r.top - bodyRect.top) * 2,
+        w: r.width * 2,
+        h: r.height * 2
+      });
+    });
+
+    // ── SLICE CANVAS INTO A4 PAGES ──
+    setProgress(60, 'Impaginazione A4…');
+    const canvasW = canvas.width;
+    const canvasH = canvas.height;
+    const scale = contentW / (canvasW / 2); // mm per CSS pixel
+    const sliceH = contentH / scale * 2;    // canvas pixels per page
+    const totalPages = Math.ceil(canvasH / sliceH);
+
+    for (let p = 0; p < totalPages; p++) {
+      pdf.addPage();
+      setProgress(60 + Math.round(35 * p / totalPages), `Pagina ${p + 1} di ${totalPages}…`);
+
+      const sy = p * sliceH;
+      const sh = Math.min(sliceH, canvasH - sy);
+
+      // Slice this page from the big canvas
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvasW;
+      pageCanvas.height = sh;
+      const ctx = pageCanvas.getContext('2d');
+      ctx.drawImage(canvas, 0, sy, canvasW, sh, 0, 0, canvasW, sh);
+
+      const imgData = pageCanvas.toDataURL('image/jpeg', 0.92);
+      const imgH = (sh / 2) * scale; // actual mm height for this slice
+      pdf.addImage(imgData, 'JPEG', margin, margin, contentW, imgH);
+
+      // ── OVERLAY CLICKABLE LINKS FOR THIS PAGE ──
+      links.forEach(lk => {
+        const linkTop = lk.y;
+        const linkBot = lk.y + lk.h;
+        const pageTop = sy;
+        const pageBot = sy + sh;
+        if (linkBot > pageTop && linkTop < pageBot) {
+          const lx = margin + (lk.x / 2) * scale;
+          const ly = margin + ((lk.y - sy) / 2) * scale;
+          const lw = (lk.w / 2) * scale;
+          const lh = (lk.h / 2) * scale;
+          pdf.link(lx, ly, lw, lh, { url: lk.url });
+        }
+      });
+
+      // Page accent line top + page number footer
+      pdf.setDrawColor(...ac);
+      pdf.setLineWidth(0.8);
+      pdf.line(margin, margin - 2, pw - margin, margin - 2);
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      pdf.text(`${p + 1} / ${totalPages}`, pw / 2, ph - 8, { align: 'center' });
+    }
+
+    // ── SAVE ──
+    setProgress(98, 'Salvataggio…');
+    const safeName = (currentMeta.country || 'guida').replace(/[^a-zA-Z0-9àèìòùÀÈÌÒÙ\s]/g, '').replace(/\s+/g, '_');
+    pdf.save(`TravelGuide_${safeName}.pdf`);
+    toast('✅ PDF scaricato con link cliccabili!');
+  } catch (e) {
+    console.error('PDF generation error:', e);
+    toast('❌ Errore PDF: ' + e.message);
+  } finally {
+    overlay.remove();
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   CHECKLIST BAGAGLIO
+════════════════════════════════════════════════════════ */
+async function generateChecklist() {
+  const key = getKey();
+  if (!key || !key.startsWith('sk-ant-')) { toast('🔑 Inserisci una API Key valida!'); return; }
+  if (!currentMeta.country) { toast('⚠️ Genera prima una guida!'); return; }
+
+  const sec = document.getElementById('checklist-section');
+  const body = document.getElementById('checklist-body');
+  const stream = document.getElementById('checklist-stream');
+  sec.style.display = 'block';
+  stream.style.display = 'flex';
+  body.innerHTML = '';
+  sec.scrollIntoView({ behavior: 'smooth' });
+
+  const nDays = daysDiff() || '?';
+  const lang = document.getElementById('lang').value;
+  const langInstr = lang === 'italiano' ? 'Rispondi in italiano.' :
+                    lang === 'inglese'  ? 'Reply in English.' : 'Antworte auf Deutsch.';
+  const prompt = `${langInstr}
+Crea una checklist bagaglio per: ${currentMeta.country}, ${nDays} giorni, ${currentMeta.ppl} persone, mezzo: ${currentMeta.transport}, tipo: ${(currentMeta.types||[]).join(', ')}.
+Formato: categorie con intestazioni ## emoji, ogni voce come "- [ ] voce". Categorie: Documenti, Abbigliamento, Tecnologia, Igiene/Salute, Accessori viaggio. Aggiungi categoria specifica per mezzo di trasporto se utile. Max 40 voci totali, solo essenziali.`;
+
+  let raw = '';
+  try {
+    const useStream = typeof ReadableStream !== 'undefined';
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 2048,
+        stream: useStream,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!resp.ok) {
+      let errMsg = `HTTP ${resp.status}`;
+      try { const err = await resp.json(); errMsg = err.error?.message || errMsg; } catch(_){}
+      throw new Error(errMsg);
+    }
+    if (useStream && resp.body && resp.body.getReader) {
+      const reader = resp.body.getReader();
+      const dec = new TextDecoder();
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop();
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const data = line.slice(6);
+          if (data === '[DONE]') continue;
+          try {
+            const ev = JSON.parse(data);
+            if (ev.type === 'content_block_delta' && ev.delta?.type === 'text_delta') {
+              raw += ev.delta.text;
+              body.innerHTML = checklistToHtml(raw);
+            }
+          } catch (_) {}
+        }
+      }
+    } else {
+      const data = await resp.json();
+      raw = (data.content && data.content[0] && data.content[0].text) || '';
+    }
+    stream.style.display = 'none';
+    body.innerHTML = checklistToHtml(raw);
+    document.getElementById('btn-checklist-pdf').style.display = 'inline-flex';
+    toast('✅ Checklist bagaglio pronta!');
+  } catch (e) {
+    stream.style.display = 'none';
+    body.innerHTML += `<div style="color:var(--c-red);padding:12px;border:1px solid var(--c-red);border-radius:8px">❌ ${e.message}</div>`;
+  }
+}
+
+function checklistToHtml(md) {
+  // ponytail: reuse markdownToHtml then convert [ ] / [x] to checkboxes
+  let h = markdownToHtml(md);
+  h = h.replace(/\[ \]\s*/g, '<input type="checkbox" style="margin-right:6px;accent-color:var(--c-blue)">');
+  h = h.replace(/\[x\]\s*/gi, '<input type="checkbox" checked style="margin-right:6px;accent-color:var(--c-blue)">');
+  return h;
+}
+
+/* ════════════════════════════════════════════════════════
+   CHECKLIST PDF
+════════════════════════════════════════════════════════ */
+async function downloadChecklistPDF() {
+  const body = document.getElementById('checklist-body');
+  if (!body.innerHTML.trim()) { toast('⚠️ Nessuna checklist da esportare!'); return; }
+
+  const overlay = document.createElement('div');
+  overlay.className = 'pdf-overlay';
+  overlay.innerHTML = `<div class="pdf-modal"><h3>📄 PDF Checklist</h3><p id="cl-pdf-status">Rendering…</p><div class="pdf-progress"><div class="pdf-progress-bar" id="cl-pdf-bar" style="width:20%"></div></div></div>`;
+  document.body.appendChild(overlay);
+
+  try {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+    const pw = 210, margin = 15, contentW = pw - margin * 2;
+
+    // Title
+    pdf.setFontSize(22);
+    pdf.setTextColor(26, 26, 26);
+    pdf.text('Checklist bagaglio - ' + (currentMeta.country || ''), pw / 2, 25, { align: 'center' });
+    pdf.setFontSize(12);
+    pdf.setTextColor(100, 100, 100);
+    pdf.text(fmtDate(currentMeta.d1) + ' - ' + fmtDate(currentMeta.d2) + ', ' + currentMeta.ppl + ' pers.', pw / 2, 35, { align: 'center' });
+    pdf.setDrawColor(200); pdf.line(margin, 40, pw - margin, 40);
+
+    document.getElementById('cl-pdf-bar').style.width = '40%';
+    document.getElementById('cl-pdf-status').textContent = 'Rendering checklist…';
+
+    const origWidth = body.style.width;
+    body.style.width = '750px';
+    body.classList.add('pdf-capture');
+    const canvas = await html2canvas(body, { scale: 2, useCORS: true, logging: false, backgroundColor: '#FFFFFF' });
+    body.classList.remove('pdf-capture');
+    body.style.width = origWidth;
+
+    document.getElementById('cl-pdf-bar').style.width = '70%';
+
+    const canvasW = canvas.width;
+    const canvasH = canvas.height;
+    const scale = contentW / (canvasW / 2);
+    const startY = 45;
+    const contentH = 297 - margin - startY;
+    const sliceH = contentH / scale * 2;
+    const totalPages = Math.ceil(canvasH / sliceH);
+
+    for (let p = 0; p < totalPages; p++) {
+      if (p > 0) { pdf.addPage(); }
+      const sy = p * sliceH;
+      const sh = Math.min(sliceH, canvasH - sy);
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvasW;
+      pageCanvas.height = sh;
+      pageCanvas.getContext('2d').drawImage(canvas, 0, sy, canvasW, sh, 0, 0, canvasW, sh);
+      const imgH = (sh / 2) * scale;
+      pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.92), 'JPEG', margin, p === 0 ? startY : margin, contentW, imgH);
+    }
+
+    document.getElementById('cl-pdf-bar').style.width = '95%';
+    const safeName = (currentMeta.country || 'checklist').replace(/[^a-zA-Z0-9àèìòùÀÈÌÒÙ\s]/g, '').replace(/\s+/g, '_');
+    pdf.save(`Checklist_${safeName}.pdf`);
+    toast('✅ PDF checklist scaricato!');
+  } catch (e) {
+    toast('❌ Errore PDF: ' + e.message);
+  } finally {
+    overlay.remove();
+  }
+}
+
+/* ════════════════════════════════════════════════════════
+   THEME TOGGLE
+════════════════════════════════════════════════════════ */
+function toggleTheme() {
+  const dark = document.documentElement.classList.toggle('dark');
+  document.documentElement.classList.toggle('light', !dark);
+  document.getElementById('btn-theme').textContent = dark ? '☀️' : '🌙';
+  localStorage.setItem('tg_theme', dark ? 'dark' : 'light');
+}
+
+/* ════════════════════════════════════════════════════════
    COPY & CLEAR
 ════════════════════════════════════════════════════════ */
 function copyGuide() {
@@ -925,6 +1408,7 @@ function clearGuide() {
   document.getElementById('hist-section').style.display = 'none';
   document.getElementById('welcome-panel').style.display = 'block';
   document.getElementById('btn-print').style.display = 'none';
+  document.getElementById('btn-pdf').style.display = 'none';
   document.getElementById('btn-clear').style.display = 'none';
   document.getElementById('country').value = '';
   document.getElementById('notes').value = '';
@@ -961,6 +1445,13 @@ function toast(msg, dur=3000) {
   }
   updateHistCount();
   // Enter key on country field
+  // Theme
+  const saved = localStorage.getItem('tg_theme');
+  if (saved === 'dark' || (!saved && matchMedia('(prefers-color-scheme:dark)').matches)) {
+    document.documentElement.classList.add('dark');
+    document.getElementById('btn-theme').textContent = '☀️';
+  }
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   document.getElementById('country').addEventListener('keydown', e => { if(e.key==='Enter') generate(); });
   // Update preview on date change
   document.getElementById('d1').addEventListener('change', updatePreview);
